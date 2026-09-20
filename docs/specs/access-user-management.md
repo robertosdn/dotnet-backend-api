@@ -230,7 +230,7 @@ Se qualquer etapa falhar, a transação inteira deve ser revertida. Em termos de
 
 Isso garante consistência entre estado e integração, sem permitir que o usuário seja alterado sem que um evento validado tenha sido registrado.
 
-## Seguranca
+## Segurança
 
 - Nunca armazenar ou retornar senha em texto puro.
 - Usar biblioteca de hash de senha revisada, com parâmetros configuráveis.
@@ -239,7 +239,7 @@ Isso garante consistência entre estado e integração, sem permitir que o usuá
 - Definir autenticação e autorização para operações administrativas antes de liberar a API em produção.
 - Definir política de rate limiting e bloqueio de tentativas antes de expor o login publicamente.
 
-## Decisoes Registradas
+## Decisões Registradas
 
 - Banco de dados e provider de persistência: a decisão arquitetural permanece em `MySQL/InnoDB` com `utf8mb4` e repositório dedicado em C#/.NET, conforme ADR da infraestrutura.
 - Formato da credencial: usar JWT de acesso stateless com `sub`, `role` e `exp`, assinado com `RS256`. O token de acesso expira em 15 minutos e um refresh token, quando existir, é armazenado no Redis com TTL para revogação e invalidação rápida.
@@ -247,7 +247,7 @@ Isso garante consistência entre estado e integração, sem permitir que o usuá
 - Algoritmo de hash: usar `Argon2id` com parâmetros configuráveis (memória 64 MiB, time cost 3, parallelism 2), armazenando somente `password_hash` e nunca a senha em texto puro. A política de rotação de senha exige rehash ao detectar parâmetros antigos ou quando a senha for alterada.
 - Estratégia de rate limiting e bloqueio de tentativas: aplicar limite por IP e por e-mail para login, com backoff exponencial e bloqueio temporário em Redis; respostas do login devem continuar genéricas para evitar enumeração.
 
-## Testes Obrigatorios
+## Testes Obrigatórios
 
 Os testes devem ser mantidos nos projetos `Backend.Api.UnitTests` e `Backend.Api.IntegrationTests`, segmentados por responsabilidade. A suíte não deve ficar concentrada em uma classe monolítica.
 
@@ -260,8 +260,8 @@ tests/
 ```
 
 - Testes unitários de validação, normalização, senha, transições de status e regras de domínio.
-- Testes de command handlers para duplicidade, concorrencia e atomicidade com a outbox.
-- Testes de queries sem efeitos colaterais e sem exposicao de hash.
+- Testes de command handlers para duplicidade, concorrência e atomicidade com a outbox.
+- Testes de queries sem efeitos colaterais e sem exposição de hash.
 - Testes de login bem-sucedido, senha inválida, usuário inexistente e usuário desabilitado.
-- Testes HTTP dos contratos, codigos de status e formato das respostas.
+- Testes HTTP dos contratos, códigos de status e formato das respostas.
 - Testes do processador da outbox para retry, idempotência e falha de publicação.
