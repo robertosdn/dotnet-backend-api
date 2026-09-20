@@ -87,11 +87,11 @@ O projetor RabbitMQ -> Elasticsearch deve consumir os eventos publicados pelo ag
 
 A reindexação do Elasticsearch a partir do MySQL é uma operação de infraestrutura e manutenção, não parte do caminho de leitura normal da API. Quando o read model precisar ser reconstruído, um job de reindexação consulta o MySQL em batch, reescreve os documentos no Elasticsearch e invalida ou substitui os índices relevantes. As queries da API continuam 100% no Elasticsearch e nunca consultam MySQL como fallback.
 
-## Modulos E Contratos
+## Módulos E Contratos
 
 Os componentes abaixo são requisitos de implementação e devem ser criados como projetos, namespaces e arquivos C# próprios. A organização combina Clean Architecture com Vertical Slice: os limites arquiteturais ficam nos projetos e cada feature agrupa endpoint, caso de uso, contratos e testes relacionados.
 
-### Organizacao Por Agregado
+### Organização Por Agregado
 
 Arquivos que pertencem diretamente ao agregado `AccessUser` devem ficar agrupados por feature e namespace dentro da camada responsável, evitando poluir a pasta com arquivos de outros agregados. A organização esperada inclui:
 
@@ -143,7 +143,7 @@ A implementação deve seguir a divisão em módulos para preservar baixo acopla
 - `Auth`: validação de senha, emissão e validação de token, e policies/middleware para autorização por papel.
 - `Api/Endpoints`: Minimal APIs, grupos de rota e conversão entre HTTP e casos de uso, sem lógica de domínio embutida.
 
-### Convencao De Arquivos C#
+### Convenção De Arquivos C#
 
 Cada classe, record, interface ou componente principal deve ficar em um arquivo PascalCase correspondente à sua responsabilidade. Na infraestrutura, por exemplo, `MySqlAccessUserRepository` fica em `Infrastructure/MySql/MySqlAccessUserRepository.cs`, `ElasticsearchAccessUserReadRepository` em `Infrastructure/Elasticsearch/ElasticsearchAccessUserReadRepository.cs`, `RabbitMqEventPublisher` em `Infrastructure/RabbitMq/RabbitMqEventPublisher.cs` e `RedisSessionStore` em `Infrastructure/Redis/RedisSessionStore.cs`.
 
@@ -157,7 +157,7 @@ Para o evento `AccessUserUpdated`, o mesmo padrão exige `AccessUserUpdatedEvent
 
 Os contratos devem manter um boundary claro: endpoints transformam HTTP em commands/queries, handlers de aplicação executam validação e domínio, e adaptadores de infraestrutura são a única troca de dados com MySQL/Elasticsearch/Redis.
 
-## Modelo De Usuario E Status
+## Modelo De Usuário E Status
 
 O modelo de domínio do usuário de acesso deve seguir a estrutura abaixo:
 
@@ -210,7 +210,7 @@ Regras de domínio:
 - `PATCH` de usuário deve atualizar `updated_at` e incrementar `version` somente quando houver mudança relevante.
 - Operações de escrita devem rejeitar condições de concorrência quando `version` informado pelo cliente divergir do registro em banco.
 
-## Unidade Transacional De Usuario E Evento
+## Unidade Transacional De Usuário E Evento
 
 A alteração do aggregate `AccessUser` e o registro do evento na outbox devem acontecer dentro da mesma transação InnoDB. O contrato de integração deve ser:
 

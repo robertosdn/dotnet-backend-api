@@ -53,7 +53,7 @@
 - [ ] Atualizar a especificação, o plano e esta lista com os resultados.
 - [ ] Publicar OpenAPI dos endpoints e validar respostas de erro com `ProblemDetails`.
 
-## Gate De Conclusao
+## Gate De Conclusão
 
 Nenhuma tarefa de endpoint pode ser marcada como concluída enquanto a estrutura modular prevista não existir, enquanto `Program.cs` concentrar responsabilidades de domínio, aplicação ou infraestrutura ou enquanto o runtime usar `InMemoryAccessUserRepository`. A revisão deve conferir os caminhos dos arquivos, os contratos entre camadas, a conexão com MySQL/RabbitMQ e os testes correspondentes.
 

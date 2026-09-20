@@ -5,13 +5,6 @@ Implementar as primeiras features reais do backend, iniciando pela gestão de us
 Esta estrutura é obrigatória para a implementação, não apenas uma sugestão de organização. Cada responsabilidade deve existir no projeto indicado antes de a etapa correspondente ser marcada como concluída. `src/Backend.Api/Program.cs` deve permanecer limitado à composição do host, DI e registro de rotas; ele não pode conter entidades, value objects, regras de validação, hash de senha, acesso a repositórios, armazenamento de estado ou orquestração de commands.
 A estrutura inicial do backend deve seguir a separação abaixo, mantendo CQRS e a outbox transacional:
 ### Contratos esperados
-- `AccessUser` e `AccessUserStatus` ficam no projeto de domínio e encapsulam regras de e-mail, nome, senha e transições de status.
-- Commands aceitam apenas DTOs de entrada válidos e retornam resultados tipados ou erros de aplicação.
-- Queries retornam views públicas do read model, sem efeitos colaterais e sem acesso ao write model.
-- Repositórios de escrita expõem operações de inserção, atualização, busca e persistência de eventos, operando dentro de unidade transacional com outbox.
-- A tabela `access_users_outbox` registra os eventos do aggregate com `id`, `aggregate_id`, `event_type`, `payload`, `status`, `attempts`, `available_at`, `created_at`, `published_at` e `last_error`, em uma transação compartilhada com o usuário.
-- Repositórios de leitura consultam o Elasticsearch e nunca fazem fallback para MySQL em consultas normais.
-- Autenticação e autorização são camadas separadas: login valida senha e emissão de token; middleware/policies validam `sub`, `role` e escopos por request.
 ### Regra de implementação
 Para cada endpoint novo, a implementação deve seguir o fluxo `Endpoint -> Command/Query -> Handler -> Domain/Port -> Adapter`, com contratos definidos em arquivos próprios. O endpoint somente desserializa a entrada, chama o handler e converte o resultado em resposta HTTP. Uma implementação não pode ser aceita se regras de domínio ou persistência estiverem concentradas em `Program.cs` ou em um único arquivo monolítico.
 Os testes também devem seguir a separação modular. Os projetos `Backend.Api.UnitTests` e `Backend.Api.IntegrationTests` são obrigatórios para a suíte principal, com classes separadas para domínio, commands/queries, repositórios, outbox e HTTP. Uma classe única de testes não atende ao plano. Testes unitários devem usar xUnit e testes HTTP devem usar `WebApplicationFactory` quando necessários.
@@ -33,9 +26,6 @@ Em cada etapa de implementação, a revisão deve verificar a árvore de arquivo
 - Não escolher banco, formato de credencial ou broker sem uma decisão registrada.
 - Não publicar eventos diretamente a partir de handlers HTTP.
 ## Critério De Saída
-A primeira feature deve permitir criar, alterar, consultar e autenticar usuários de acesso, demonstrar que a alteração de estado e o evento da outbox são confirmados juntos e remover os endpoints de demonstração sem reduzir a cobertura de testes. O backend deve permanecer preparado para novas features de negócio.
-O critério de saída inclui a estrutura modular prevista: domínio, commands, queries, repositórios, outbox, autenticação e HTTP devem estar separados em projetos/namespaces próprios, com `Program.cs` contendo somente a montagem do host, DI e rotas.
-Também inclui uma suíte de testes segmentada nos projetos `*.Tests`, sem concentrar os testes em uma classe monolítica.
 # Plano: Evolucao Do Backend
 
 ## Objetivo

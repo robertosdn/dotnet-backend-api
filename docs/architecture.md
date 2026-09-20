@@ -10,7 +10,7 @@ O Dockerfile possui etapas `test`, `build`, `publish` e `production`, que execut
 
 A infraestrutura aprovada está definida em `docs/decisions/adr-001-infrastructure-stack.md`: MySQL 9.7.2 com InnoDB e `utf8mb4` como write model, RabbitMQ 4.3.6 como broker, Elasticsearch 9.5.4 como read model e Redis 8.8 somente para sessões e dados temporários.
 
-## Direcao Arquitetural
+## Direção Arquitetural
 
 A organização de código segue Clean Architecture combinada com Vertical Slice. Clean Architecture define os limites de dependência; cada feature organiza seus casos de uso, contratos HTTP e testes por fluxo de negócio. SOLID é aplicado de forma pragmática, sem criar interfaces para classes que não possuem mais de uma implementação ou um limite arquitetural claro.
 
@@ -78,11 +78,11 @@ Um processador separado busca eventos pendentes, publica cada evento no RabbitMQ
 
 Os adaptadores de produção devem usar MySQL/InnoDB e RabbitMQ reais. O endpoint de criação usa um provider ADO.NET/EF Core ou micro-ORM aprovado para gravar usuário e outbox na mesma transação; o publisher RabbitMQ será conectado pelo worker do processador da outbox. Implementações em memória são permitidas somente para testes unitários e não podem ser registradas no DI de runtime como substitutas da infraestrutura final.
 
-### Redis Temporario
+### Redis Temporário
 
 Redis não participa do read model de CQRS. Deve ser usado somente para sessões, tokens revogados, rate limiting e outros dados temporários com TTL explícito. MySQL continua sendo o write model e Elasticsearch o read model.
 
-## Restricoes
+## Restrições
 
 - Não publicar eventos diretamente antes do commit da transação.
 - Não misturar leitura e escrita no mesmo handler sem justificativa documentada.

@@ -4,7 +4,7 @@
 
 Manter uma API backend completa em C# sobre .NET 10 LTS, testável e preparada para evoluir com múltiplas features sem perder clareza arquitetural.
 
-## Principios Obrigatorios
+## Princípios Obrigatórios
 
 1. **C#/.NET idiomático**: preferir tipos fortes, nullable reference types, erros explícitos, async/await e responsabilidades pequenas.
 2. **CQRS**: separar operacoes que alteram estado (commands) de operacoes que apenas consultam estado (queries).

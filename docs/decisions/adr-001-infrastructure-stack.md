@@ -8,7 +8,7 @@ Aceita.
 
 A API backend precisa evoluir para features de negócio reais, iniciando pela gestão de usuários de acesso, com persistência, eventos de integração e cache sem misturar responsabilidades.
 
-## Decisao
+## Decisão
 
 - Usar MySQL com InnoDB como fonte de verdade.
 - Usar `utf8mb4` em tabelas, conexões e migrações para Unicode completo.
@@ -20,14 +20,14 @@ A API backend precisa evoluir para features de negócio reais, iniciando pela ge
 - Usar Clean Architecture + Vertical Slice na solucao .NET 10, com `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure` e `Backend.Contracts`.
 - Usar Minimal APIs versionadas em `/api/v1`, `ProblemDetails` para erros e IoC por extensoes de `IServiceCollection`.
 
-## Consequencias Positivas
+## Consequências Positivas
 
 - Transações ACID para dados de negócio e eventos.
 - Eventos desacoplados por RabbitMQ.
 - Consultas especializadas e independentes do write model.
 - Isolamento operacional entre outboxes de diferentes tabelas.
 
-## Consequencias E Riscos
+## Consequências E Riscos
 
 - A operação exige MySQL, RabbitMQ e Redis no ambiente local e de testes.
 - A entrega da outbox é at-least-once, exigindo consumidores idempotentes.
