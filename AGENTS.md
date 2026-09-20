@@ -1,4 +1,4 @@
-# Instrucoes Do Projeto
+# Instruções Do Projeto
 
 Estas instrucoes sao aplicaveis a pessoas e a qualquer agente de desenvolvimento utilizado neste repositorio.
 
@@ -6,7 +6,7 @@ Estas instrucoes sao aplicaveis a pessoas e a qualquer agente de desenvolvimento
 
 Desenvolver uma API backend completa em .NET 10 LTS com C#, modular, testável e preparada para evoluir com múltiplas features de negócio, incluindo gestão de usuários de acesso.
 
-## Arquitetura Obrigatoria
+## Arquitetura Obrigatória
 
 - Usar CQRS: commands alteram o write model; queries somente consultam o read model.
 - Usar MySQL com InnoDB e `utf8mb4` como write model e fonte de verdade.
@@ -23,20 +23,20 @@ Desenvolver uma API backend completa em .NET 10 LTS com C#, modular, testável e
 - Manter métodos pequenos, responsabilidades claras e componentes reutilizáveis.
 - Evitar arquivos monolíticos e abstrações artificiais.
 
-## Seguranca E Memoria
+## Segurança E Memória
 
 - Nunca armazenar ou expor senhas em texto puro.
 - Usar nullable reference types, `Result`/`ProblemDetails`, `async`/`await`, `CancellationToken` e `IDisposable`/`IAsyncDisposable` para tratar estados e recursos.
 - Revisar concorrência, tasks, canais, locks, conexões, cancellation tokens e escopos de DI.
 - Procurar nullability incorreta, deadlocks, data races lógicas, vazamentos de conexões e tarefas não observadas.
 
-## Docker E Validacao
+## Docker E Validação
 
 - Usar Docker Compose ou as etapas do Dockerfile para restaurar, compilar, testar e executar .NET.
 - Executar as validações aplicáveis dentro do Docker, incluindo `dotnet format --verify-no-changes`, `dotnet test` e `dotnet build --warnaserror`.
 - Não considerar uma alteração concluída sem relatar os comandos executados e seus resultados.
 
-## SDD E Sincronizacao
+## SDD E Sincronização
 
 O padrao de desenvolvimento Specification-Driven Development (SDD) deste projeto esta documentado em [`docs/README.md`](docs/README.md). Consulte a documentacao referenciada ali antes de implementar uma funcionalidade.
 
@@ -53,7 +53,7 @@ Sempre que alterar infraestrutura, dependencias, `Dockerfile`, `docker-compose.y
 - Atualizar health checks, portas, volumes e configurações documentadas quando mudarem.
 - Manter código, configuração operacional, comandos e documentação sincronizados.
 
-## Mudancas
+## Mudanças
 
 - Ler a especificação, o plano, as tarefas e os testes relacionados antes de editar.
 - Fazer a menor mudança coerente com a arquitetura existente.

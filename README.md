@@ -84,7 +84,7 @@ O Compose publica `https://localhost:8443` e usa o certificado apenas dentro do 
 - O bootstrap da stack deve garantir que `access_users`, `access_users_outbox`, fila de eventos e indice de consulta sejam criados automaticamente ao subir a infraestrutura.
 - A aplicacao nao deve depender de SQL gerado em runtime em handlers HTTP; a schema deve ser aplicada por migracao reproducivel.
 
-## Desenvolvimento Orientado Por Especificacao
+## Desenvolvimento Orientado Por Especificação
 
 Antes de implementar uma funcionalidade:
 
@@ -96,7 +96,7 @@ Antes de implementar uma funcionalidade:
 6. Adicione testes unitarios e de integracao.
 7. Atualize a documentacao e execute as validacoes Docker.
 
-## Documentacao
+## Documentação
 
 - [`AGENTS.md`](AGENTS.md): instrucoes compartilhadas para pessoas e agentes de qualquer ferramenta.
 - [`docs/README.md`](docs/README.md): indice da documentacao SDD.
