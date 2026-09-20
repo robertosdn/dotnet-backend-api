@@ -1,14 +1,14 @@
-# Infraestrutura: RabbitMQ
+# Infrastructure: RabbitMQ
 
 ## Status
 
-Aprovada para a publicação dos eventos da Transactional Outbox.
+Approved for Transactional Outbox event publication.
 
-## Responsabilidade
+## Responsibility
 
-RabbitMQ será o broker de mensagens entre o processador das outboxes e os consumidores de eventos de integração. Ele não será a fonte de verdade dos dados de negócio; essa responsabilidade permanece no MySQL.
+RabbitMQ will be the message broker between outbox processors and integration event consumers. It will not be the source of truth for business data; that responsibility remains with MySQL.
 
-## Fluxo
+## Flow
 
 ```text
 MySQL domain table + table_outbox
@@ -17,38 +17,42 @@ MySQL domain table + table_outbox
        Outbox processor
               |
               v
-           RabbitMQ
+            RabbitMQ
               |
               v
-          Consumers
+           Consumers
 ```
 
-O processador somente deve publicar registros após o commit da transação que os criou. Depois de uma confirmação de publicação, o registro da outbox pode ser marcado como publicado.
+The processor must only publish records after the transaction that created them is committed. After a publication confirmation, the outbox record can be marked as published.
 
-## Bootstrap Local Com Docker Compose
+## Local Bootstrap With Docker Compose
 
-O ambiente local deve subir com `docker compose up --build` e o RabbitMQ deve já iniciar com a configuração básica do broker:
+The local environment must start with `docker compose up --build` and RabbitMQ must already start with the basic broker configuration:
 
 - exchange `access_users.events`
-- fila `access_users.events.queue`
-- binding entre exchange e fila
-- usuário administrativo padrão `guest` para ambiente local
+- queue `access_users.events.queue`
+- binding between exchange and queue
+- default administrative user `guest` for local environment
 
-A configuração deve estar versionada em `rabbitmq/rabbitmq.conf` e `rabbitmq/definitions.json`, e não depender de execução manual após a subida do contêiner.
+Configuration must be versioned in `rabbitmq/rabbitmq.conf` and `rabbitmq/definitions.json`, and must not depend on manual execution after container startup.
 
-## Regras
+## Rules
 
-- Usar publisher confirms.
-- Usar exchanges e routing keys versionadas por tipo de evento.
-- Garantir entrega at-least-once.
-- Configurar retry com backoff e dead-letter queue para mensagens que excederem o limite.
-- Consumidores devem ser idempotentes pelo `event_id`.
-- Não colocar senha, token ou dados sensíveis no payload sem decisão de segurança.
-- Definir timeouts, limites de payload e política de durabilidade.
+- Use publisher confirms.
+- Use versioned exchanges and routing keys by event type.
+- Guarantee at-least-once delivery.
+- Configure retry with backoff and dead-letter queue for messages exceeding the limit.
+- Consumers must be idempotent by `event_id`.
+- Do not put password, token, or sensitive data in payload without security decision.
+- Define timeouts, payload limits, and durability policy.
 
-## Testes
+## Tests
 
-- Publicação confirmada e falha de confirmação.
-- Retry e dead-letter queue.
-- Duplicata com o mesmo `event_id`.
-- Reinício do RabbitMQ sem perda de registros ainda pendentes na outbox.
+- Confirmed publication and confirmation failure.
+- Retry and dead-letter queue.
+- Duplicate with same `event_id`.
+- RabbitMQ restart without loss of records still pending in outbox.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

@@ -1,41 +1,45 @@
-# ADR-001: Stack De Infraestrutura
+# ADR-001: Infrastructure Stack
 
 ## Status
 
-Aceita.
+Accepted.
 
-## Contexto
+## Context
 
-A API backend precisa evoluir para features de negócio reais, iniciando pela gestão de usuários de acesso, com persistência, eventos de integração e cache sem misturar responsabilidades.
+The backend API needs to evolve to real business features, starting with access user management, with persistence, integration events, and cache without mixing responsibilities.
 
-## Decisão
+## Decision
 
-- Usar MySQL com InnoDB como fonte de verdade.
-- Usar `utf8mb4` em tabelas, conexões e migrações para Unicode completo.
-- Criar uma tabela de outbox por tabela de domínio que produza eventos.
-- Usar RabbitMQ como broker para publicar eventos após o commit.
-- Usar Elasticsearch como read model exclusivo das queries, inclusive consultas por id.
-- Usar Redis somente para sessões, tokens revogados, rate limiting e dados temporários.
-- Manter CQRS: commands escrevem no MySQL e outbox; queries leem somente do Elasticsearch.
-- Usar Clean Architecture + Vertical Slice na solucao .NET 10, com `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure` e `Backend.Contracts`.
-- Usar Minimal APIs versionadas em `/api/v1`, `ProblemDetails` para erros e IoC por extensoes de `IServiceCollection`.
+- Use MySQL with InnoDB as source of truth.
+- Use `utf8mb4` in tables, connections, and migrations for full Unicode.
+- Create one outbox table per domain table that produces events.
+- Use RabbitMQ as broker to publish events after commit.
+- Use Elasticsearch as exclusive read model for queries, including by-id lookups.
+- Use Redis only for sessions, revoked tokens, rate limiting, and temporary data.
+- Maintain CQRS: commands write to MySQL and outbox; queries read only from Elasticsearch.
+- Use Clean Architecture + Vertical Slice in .NET 10 solution, with `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure`, and `Backend.Contracts`.
+- Use versioned Minimal APIs in `/api/v1`, `ProblemDetails` for errors, and IoC via `IServiceCollection` extensions.
 
-## Consequências Positivas
+## Positive Consequences
 
-- Transações ACID para dados de negócio e eventos.
-- Eventos desacoplados por RabbitMQ.
-- Consultas especializadas e independentes do write model.
-- Isolamento operacional entre outboxes de diferentes tabelas.
+- ACID transactions for business data and events.
+- Decoupled events via RabbitMQ.
+- Specialized queries independent of write model.
+- Operational isolation between outboxes of different tables.
 
-## Consequências E Riscos
+## Consequences And Risks
 
-- A operação exige MySQL, RabbitMQ e Redis no ambiente local e de testes.
-- A entrega da outbox é at-least-once, exigindo consumidores idempotentes.
-- Outboxes por tabela aumentam o número de migrações e processadores a monitorar.
-- A projeção para Elasticsearch exige consistência eventual, reprocessamento e observabilidade.
-- O Redis exige TTL, revogação e monitoramento, mas não participa das queries de usuários.
-- A separacao por projetos exige disciplina nos limites de dependencia e pode aumentar a quantidade de arquivos por feature.
+- Operation requires MySQL, RabbitMQ, and Redis in local and test environments.
+- Outbox delivery is at-least-once, requiring idempotent consumers.
+- Outboxes per table increase the number of migrations and processors to monitor.
+- Projection to Elasticsearch requires eventual consistency, reprocessing, and observability.
+- Redis requires TTL, revocation, and monitoring, but does not participate in user queries.
+- Separation by projects requires discipline in dependency boundaries and may increase the number of files per feature.
 
-## Fora Desta ADR
+## Out Of Scope For This ADR
 
-Esta decisão não escolhe ainda o formato de token de login, o algoritmo de hash de senha, o pacote NuGet de persistência ou as regras de autorização administrativa. Essas decisões devem ser registradas antes da implementação dos endpoints.
+This decision does not yet choose the login token format, password hash algorithm, persistence NuGet package, or administrative authorization rules. These decisions must be recorded before endpoint implementation.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

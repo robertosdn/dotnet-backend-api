@@ -1,19 +1,19 @@
-# Documentação SDD
+# SDD Documentation
 
-Esta pasta usa Specification-Driven Development (SDD).
+This folder uses Specification-Driven Development (SDD).
 
-- `constitution.md`: princípios e critérios obrigatórios.
-- `architecture.md`: estrutura técnica e regras de CQRS e Transactional Outbox.
-- `infrastructure/`: especificações operacionais de banco, fila, cache e observabilidade.
-- `infrastructure/search.md`: especificação do Elasticsearch como read model.
-- `decisions/`: ADRs com escolhas técnicas e suas consequências.
-- `specs/`: comportamento esperado de cada funcionalidade.
-- `plans/`: estratégia para implementar uma funcionalidade ou evolução.
-- `tasks/`: checklist executável derivado do plano.
+- `constitution.md`: mandatory principles and criteria.
+- `architecture.md`: technical structure and CQRS and Transactional Outbox rules.
+- `infrastructure/`: operational specifications for database, queue, cache, and observability.
+- `infrastructure/search.md`: Elasticsearch specification as read model.
+- `decisions/`: ADRs with technical choices and their consequences.
+- `specs/`: expected behavior of each feature.
+- `plans/`: strategy to implement a feature or evolution.
+- `tasks/`: executable checklist derived from the plan.
 
-## Estrutura .NET
+## .NET Structure
 
-A solução usa .NET 10 LTS, C# e ASP.NET Core Minimal APIs:
+The solution uses .NET 10 LTS, C#, and ASP.NET Core Minimal APIs:
 
 ```text
 Backend.sln
@@ -28,13 +28,13 @@ tests/Backend.Infrastructure.IntegrationTests
 tests/Backend.Api.IntegrationTests
 ```
 
-`Backend.Api/Program.cs` é o composition root. As dependências são registradas por extensões de `IServiceCollection`, e os endpoints são organizados por feature em arquivos PascalCase. A API usa `ProblemDetails`, Minimal APIs, `CancellationToken` e `WebApplicationFactory` nos testes HTTP.
+`Backend.Api/Program.cs` is the composition root. Dependencies are registered via `IServiceCollection` extensions, and endpoints are organized by feature in PascalCase files. The API uses `ProblemDetails`, Minimal APIs, `CancellationToken`, and `WebApplicationFactory` in HTTP tests.
 
-## Organização Dos Testes .NET
+## .NET Test Organization
 
-Este projeto centraliza os testes em projetos `*.Tests`, segmentados por responsabilidade. Não deve existir uma classe única concentrando toda a suíte.
+This project centralizes tests in `*.Tests` projects, segmented by responsibility. There must not be a single class concentrating the entire suite.
 
-Estrutura minima esperada:
+Minimum expected structure:
 
 ```text
 tests/
@@ -48,10 +48,14 @@ tests/
     Fixtures/CustomWebApplicationFactory.cs
 ```
 
-Testes unitários ficam no projeto `Backend.Api.UnitTests` e testes de integração no projeto `Backend.Api.IntegrationTests`, usando xUnit e `WebApplicationFactory` quando aplicável. O padrão operacional é manter a suíte segmentada por camada, evitando classes de teste monolíticas e testes acoplados a detalhes privados.
+Unit tests are in the `Backend.Api.UnitTests` project and integration tests in `Backend.Api.IntegrationTests`, using xUnit and `WebApplicationFactory` when applicable. The operational pattern is to keep the suite segmented by layer, avoiding monolithic test classes and tests coupled to private details.
 
-Fluxo recomendado:
+Recommended flow:
 
 ```text
 spec -> plan -> tasks -> implementation -> tests -> update docs
 ```
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

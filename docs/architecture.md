@@ -1,44 +1,44 @@
-# Arquitetura
+# Architecture
 
-## Estado Atual
+## Current State
 
-A aplicação é um serviço HTTP em C# usando ASP.NET Core sobre .NET 10 LTS. O ponto de entrada está em `src/Backend.Api/Program.cs` e a composição das rotas é registrada na camada HTTP.
+The application is an HTTP service in C# using ASP.NET Core on .NET 10 LTS. The entry point is in `src/Backend.Api/Program.cs` and route composition is registered in the HTTP layer.
 
-A gestão de usuários de acesso é a primeira feature de negócio documentada em `docs/specs/access-user-management.md`, dentro do backend completo.
+Access user management is the first documented business feature in `docs/specs/access-user-management.md`, within the complete backend.
 
-O Dockerfile possui etapas `test`, `build`, `publish` e `production`, que executam `dotnet test`, `dotnet publish` e hospedam a aplicação. O Docker Compose expõe o serviço em `8080` e possui um perfil `test` para a imagem de testes.
+The Dockerfile has `test`, `build`, `publish`, and `production` stages that run `dotnet test`, `dotnet publish`, and host the application. Docker Compose exposes the service on `8080` and has a `test` profile for the test image.
 
-A infraestrutura aprovada está definida em `docs/decisions/adr-001-infrastructure-stack.md`: MySQL 9.7.2 com InnoDB e `utf8mb4` como write model, RabbitMQ 4.3.6 como broker, Elasticsearch 9.5.4 como read model e Redis 8.8 somente para sessões e dados temporários.
+Approved infrastructure is defined in `docs/decisions/adr-001-infrastructure-stack.md`: MySQL 9.7.2 with InnoDB and `utf8mb4` as write model, RabbitMQ 4.3.6 as broker, Elasticsearch 9.5.4 as read model, and Redis 8.8 only for sessions and temporary data.
 
-## Direção Arquitetural
+## Architectural Direction
 
-A organização de código segue Clean Architecture combinada com Vertical Slice. Clean Architecture define os limites de dependência; cada feature organiza seus casos de uso, contratos HTTP e testes por fluxo de negócio. SOLID é aplicado de forma pragmática, sem criar interfaces para classes que não possuem mais de uma implementação ou um limite arquitetural claro.
+Code organization follows Clean Architecture combined with Vertical Slice. Clean Architecture defines dependency boundaries; each feature organizes its use cases, HTTP contracts, and tests by business flow. SOLID is applied pragmatically, without creating interfaces for classes that don't have more than one implementation or a clear architectural boundary.
 
 ```text
 Backend.sln
-    src/Backend.Api              -> composicao, endpoints e middleware
-    src/Backend.Application      -> commands, queries e portas
-    src/Backend.Domain           -> entidades, value objects e eventos
-    src/Backend.Infrastructure   -> MySQL, Elasticsearch, RabbitMQ, Redis e segurança
-    src/Backend.Contracts        -> requests e responses publicos
-    tests/Backend.*.Tests        -> testes por responsabilidade
+    src/Backend.Api              -> composition, endpoints, and middleware
+    src/Backend.Application      -> commands, queries, and ports
+    src/Backend.Domain           -> entities, value objects, and events
+    src/Backend.Infrastructure   -> MySQL, Elasticsearch, RabbitMQ, Redis, and security
+    src/Backend.Contracts        -> public requests and responses
+    tests/Backend.*.Tests        -> tests by responsibility
 ```
 
-As dependências apontam para dentro: `Api` depende de `Application`, `Application` depende de `Domain` e `Infrastructure` implementa as abstrações definidas por `Application`. `Domain` não depende de ASP.NET Core, banco, broker, Elasticsearch ou Redis.
+Dependencies point inward: `Api` depends on `Application`, `Application` depends on `Domain`, and `Infrastructure` implements abstractions defined by `Application`. `Domain` does not depend on ASP.NET Core, database, broker, Elasticsearch, or Redis.
 
-`Program.cs` é o composition root. Ele configura o host, middleware, OpenAPI, grupos de rotas e extensões de `IServiceCollection`, mas não contém regras de negócio. Cada módulo de infraestrutura expõe uma extensão como `AddPersistence`, `AddMessaging` ou `AddSecurity` para registrar seu próprio grafo de dependências.
+`Program.cs` is the composition root. It configures the host, middleware, OpenAPI, route groups, and `IServiceCollection` extensions, but contains no business rules. Each infrastructure module exposes an extension like `AddPersistence`, `AddMessaging`, or `AddSecurity` to register its own dependency graph.
 
-### Convenções .NET 10
+### .NET 10 Conventions
 
-- Usar Minimal APIs com grupos de rota e endpoints tipados por feature.
-- Usar `ProblemDetails` e `ValidationProblemDetails` para erros HTTP.
-- Usar `CancellationToken` em endpoints, handlers, repositorios e workers.
-- Usar `BackgroundService` para o processador da outbox.
-- Usar `WebApplicationFactory` nos testes HTTP de integração.
-- Usar PascalCase em arquivos e classes: `CreateAccessUserEndpoint.cs`, `CreateAccessUserCommand.cs` e `MySqlAccessUserWriteRepository.cs`.
-- Manter uma classe, record, interface ou responsabilidade principal por arquivo.
+- Use Minimal APIs with route groups and typed endpoints by feature.
+- Use `ProblemDetails` and `ValidationProblemDetails` for HTTP errors.
+- Use `CancellationToken` in endpoints, handlers, repositories, and workers.
+- Use `BackgroundService` for the outbox processor.
+- Use `WebApplicationFactory` in HTTP integration tests.
+- Use PascalCase for files and classes: `CreateAccessUserEndpoint.cs`, `CreateAccessUserCommand.cs`, and `MySqlAccessUserWriteRepository.cs`.
+- Keep one class, record, interface, or main responsibility per file.
 
-O formato publico da API permanece versionado e orientado a recursos:
+The public API format remains versioned and resource-oriented:
 
 ```text
 POST   /api/v1/access-users
@@ -48,7 +48,7 @@ PATCH  /api/v1/access-users/{id}
 POST   /api/v1/auth/login
 ```
 
-As novas funcionalidades devem seguir as camadas abaixo:
+New features must follow the layers below:
 
 ```text
 HTTP handler
@@ -60,33 +60,37 @@ HTTP handler
 Outbox processor --> Event publisher --> Elasticsearch projector
 ```
 
-O fluxo HTTP detalhado é `Endpoint -> Command/Query -> Handler -> Domain/Port -> Adapter`. Endpoints apenas convertem HTTP em request, chamam o caso de uso e convertem o resultado em status HTTP.
+The detailed HTTP flow is `Endpoint -> Command/Query -> Handler -> Domain/Port -> Adapter`. Endpoints only convert HTTP to request, call the use case, and convert the result to HTTP status.
 
 ### Commands
 
-Commands representam intenções que podem alterar estado. O command handler valida a entrada, executa a regra de domínio e grava a alteração junto com o evento de integração na mesma transação.
+Commands represent intentions that can alter state. The command handler validates input, executes the domain rule, and writes the change along with the integration event in the same transaction.
 
 ### Queries
 
-Queries somente leem o read model do Elasticsearch. Não devem consultar MySQL como fallback, alterar estado, criar eventos ou depender de efeitos colaterais de commands.
+Queries only read the Elasticsearch read model. They must not query MySQL as a fallback, alter state, create events, or depend on command side effects.
 
 ### Transactional Outbox
 
-A tabela ou armazenamento da outbox deve conter, no mínimo, identificador do evento, tipo, payload, status, tentativas, timestamps e erro da última tentativa. Cada tabela de domínio que produzir eventos terá sua própria tabela de outbox. A alteração de domínio e o registro da outbox devem ser confirmados atomicamente no MySQL/InnoDB.
+The outbox table or storage must contain, at minimum, event identifier, type, payload, status, attempts, timestamps, and last attempt error. Each domain table that produces events will have its own outbox table. The domain change and outbox registration must be committed atomically in MySQL/InnoDB.
 
-Um processador separado busca eventos pendentes, publica cada evento no RabbitMQ e marca o registro como processado. O processamento deve ter retry, backoff, idempotência e observabilidade. A publicação deve ser at-least-once; consumidores precisam aceitar duplicatas.
+A separate processor fetches pending events, publishes each event to RabbitMQ, and marks the record as processed. Processing must have retry, backoff, idempotency, and observability. Publication must be at-least-once; consumers must accept duplicates.
 
-Os adaptadores de produção devem usar MySQL/InnoDB e RabbitMQ reais. O endpoint de criação usa um provider ADO.NET/EF Core ou micro-ORM aprovado para gravar usuário e outbox na mesma transação; o publisher RabbitMQ será conectado pelo worker do processador da outbox. Implementações em memória são permitidas somente para testes unitários e não podem ser registradas no DI de runtime como substitutas da infraestrutura final.
+Production adapters must use real MySQL/InnoDB and RabbitMQ. The creation endpoint uses an approved ADO.NET/EF Core provider or micro-ORM to write user and outbox in the same transaction; the RabbitMQ publisher will be connected by the outbox processor worker. In-memory implementations are allowed only for unit tests and cannot be registered in runtime DI as substitutes for the final infrastructure.
 
-### Redis Temporário
+### Temporary Redis
 
-Redis não participa do read model de CQRS. Deve ser usado somente para sessões, tokens revogados, rate limiting e outros dados temporários com TTL explícito. MySQL continua sendo o write model e Elasticsearch o read model.
+Redis does not participate in the CQRS read model. It must be used only for sessions, revoked tokens, rate limiting, and other temporary data with explicit TTL. MySQL remains the write model and Elasticsearch the read model.
 
-## Restrições
+## Constraints
 
-- Não publicar eventos diretamente antes do commit da transação.
-- Não misturar leitura e escrita no mesmo handler sem justificativa documentada.
-- Não introduzir banco, broker ou pacote NuGet de persistência sem atualizar esta arquitetura e a especificação da funcionalidade.
-- Manter o contrato HTTP existente salvo quando uma especificação aprovada definir a mudança.
-- Registrar implementações no IoC por extensões de `IServiceCollection`, evitando service locator e dependências concretas nos handlers.
-- Não criar abstrações artificiais: uma interface deve representar uma porta, uma política ou uma variação real de infraestrutura.
+- Do not publish events directly before the transaction commit.
+- Do not mix read and write in the same handler without documented justification.
+- Do not introduce database, broker, or persistence NuGet package without updating this architecture and the feature specification.
+- Maintain the existing HTTP contract unless an approved specification defines the change.
+- Register implementations in IoC via `IServiceCollection` extensions, avoiding service locator and concrete dependencies in handlers.
+- Do not create artificial abstractions: an interface must represent a port, a policy, or a real infrastructure variation.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

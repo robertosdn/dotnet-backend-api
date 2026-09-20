@@ -1,99 +1,99 @@
-# Especificação: Gestão de Usuário de Acesso
+# Specification: Access User Management
 
 ## Status
 
-Planejada.
+Planned.
 
-## Objetivo
+## Objective
 
-Implementar uma API real para criar, alterar, consultar e autenticar usuários de acesso.
+Implement a real API to create, update, query, and authenticate access users.
 
-## Modelo Conceitual
+## Conceptual Model
 
-Um usuário de acesso possui, no mínimo:
+An access user has, at minimum:
 
-- `id` imutavel;
-- `email` único e normalizado;
-- `name` ou nome de exibição;
-- `password_hash`, nunca a senha em texto puro;
-- `status`, inicialmente `active` ou `disabled`;
-- timestamps de criação e alteração;
-- controle de versão ou outra estratégia de concorrência otimista.
+- immutable `id`;
+- unique and normalized `email`;
+- `name` or display name;
+- `password_hash`, never the password in plain text;
+- `status`, initially `active` or `disabled`;
+- creation and update timestamps;
+- version control or other optimistic concurrency strategy.
 
-A resposta HTTP nunca deve expor `password_hash`.
+The HTTP response must never expose `password_hash`.
 
 ## Endpoints
 
-### Criar usuário
+### Create User
 
 `POST /api/v1/access-users`
 
 - Command: `CreateAccessUser`.
-- Deve validar e-mail, nome e política de senha.
-- Deve rejeitar e-mail duplicado com `409 Conflict`.
-- Deve armazenar somente um hash de senha com algoritmo apropriado.
-- Deve retornar `201 Created` sem senha ou hash na resposta.
-- Deve registrar um evento `AccessUserCreated` na outbox na mesma transação da criação.
+- Must validate email, name, and password policy.
+- Must reject duplicate email with `409 Conflict`.
+- Must store only a password hash with an appropriate algorithm.
+- Must return `201 Created` without password or hash in response.
+- Must record an `AccessUserCreated` event in the outbox in the same transaction as creation.
 
-### Alterar usuário
+### Update User
 
 `PATCH /api/v1/access-users/{id}`
 
 - Command: `UpdateAccessUser`.
-- Deve permitir alterar nome, e-mail e status conforme as regras de autorização.
-- Alteração de e-mail deve preservar unicidade e normalização.
-- Alteração de senha deve gerar novo hash e nunca armazenar a senha original.
-- Deve retornar `200 OK` sem senha ou hash.
-- Deve registrar evento de integração somente quando houver mudança de estado relevante.
+- Must allow changing name, email, and status according to authorization rules.
+- Email change must preserve uniqueness and normalization.
+- Password change must generate a new hash and never store the original password.
+- Must return `200 OK` without password or hash.
+- Must record an integration event only when there is a relevant state change.
 
-### Consultar usuário
+### Get User
 
 `GET /api/v1/access-users/{id}`
 
 - Query: `GetAccessUser`.
-- Deve retornar `200 OK` com dados públicos do usuário.
-- Deve retornar `404 Not Found` quando o usuário não existir.
-- Não deve alterar estado nem criar evento.
+- Must return `200 OK` with public user data.
+- Must return `404 Not Found` when user does not exist.
+- Must not alter state or create event.
 
-### Listar usuários
+### List Users
 
 `GET /api/v1/access-users`
 
 - Query: `ListAccessUsers`.
-- Deve suportar paginação determinística.
-- Deve permitir filtros documentados, como status e e-mail.
-- Não deve retornar senha ou hash.
-- Não deve alterar estado nem criar evento.
+- Must support deterministic pagination.
+- Must allow documented filters, such as status and email.
+- Must not return password or hash.
+- Must not alter state or create event.
 
 ### Login
 
 `POST /api/v1/auth/login`
 
-- Command: `LoginAccessUser` ou caso de uso de autenticação com leitura de credenciais.
-- Deve localizar o usuário por e-mail normalizado e verificar o hash da senha.
-- Deve rejeitar credenciais inválidas com resposta genérica, sem revelar se o e-mail existe.
-- Deve rejeitar usuário `disabled`.
-- Em sucesso, deve retornar uma credencial de sessão ou token conforme decisão arquitetural registrada.
-- Não deve registrar senha, token ou credencial em logs.
-- Tentativas de login e eventos de segurança devem seguir a política de outbox quando houver consumidores de integração.
+- Command: `LoginAccessUser` or authentication use case with credential reading.
+- Must locate user by normalized email and verify password hash.
+- Must reject invalid credentials with a generic response, without revealing if email exists.
+- Must reject `disabled` user.
+- On success, must return a session credential or token per recorded architectural decision.
+- Must not log password, token, or credential.
+- Login attempts and security events must follow outbox policy when there are integration consumers.
 
-## CQRS E Outbox
+## CQRS And Outbox
 
-Commands alteram estado no MySQL e queries somente leem o read model no Elasticsearch. Queries nunca devem consultar MySQL como fallback. A criação, alteração, desativação e eventos de segurança devem usar uma unidade transacional. A escrita do usuário e o registro do evento na outbox devem ser confirmados atomicamente.
+Commands alter state in MySQL and queries only read the read model in Elasticsearch. Queries must never query MySQL as a fallback. Creation, update, deactivation, and security events must use a transactional unit. User write and outbox event registration must be committed atomically.
 
-O processador da outbox deve publicar eventos com entrega at-least-once, retry com backoff e comportamento idempotente. O algoritmo deve seguir: selecionar eventos `pending` e `available_at <= now`, tentar publicar no RabbitMQ, registrar tentativa e, em caso de erro, aumentar `attempts`, calcular delay exponencial e marcar `last_error`. Eventos com sucesso devem ser marcados como `published` e manter idempotência pelo `event_id` para evitar duplicação em reprocessamento.
+The outbox processor must publish events with at-least-once delivery, retry with backoff, and idempotent behavior. The algorithm must follow: select `pending` and `available_at <= now` events, attempt to publish to RabbitMQ, record attempt, and on error, increase `attempts`, calculate exponential delay, and mark `last_error`. Successful events must be marked as `published` and maintain idempotency by `event_id` to avoid duplication on reprocessing.
 
-O projetor RabbitMQ -> Elasticsearch deve consumir os eventos publicados pelo aggregate de usuário e aplicar as alterações no read model, preservando `id`, `email`, `name`, `status`, `version` e timestamps. A indexação deve ser idempotente por `id` do usuário e nunca depender de consultas ao MySQL. Consumidores devem aceitar duplicatas usando o identificador do evento.
+The RabbitMQ -> Elasticsearch projector must consume events published by the user aggregate and apply changes to the read model, preserving `id`, `email`, `name`, `status`, `version`, and timestamps. Indexing must be idempotent by user `id` and never depend on MySQL queries. Consumers must accept duplicates using the event identifier.
 
-A reindexação do Elasticsearch a partir do MySQL é uma operação de infraestrutura e manutenção, não parte do caminho de leitura normal da API. Quando o read model precisar ser reconstruído, um job de reindexação consulta o MySQL em batch, reescreve os documentos no Elasticsearch e invalida ou substitui os índices relevantes. As queries da API continuam 100% no Elasticsearch e nunca consultam MySQL como fallback.
+Elasticsearch reindexing from MySQL is an infrastructure and maintenance operation, not part of the normal API read path. When the read model needs rebuilding, a reindexing job queries MySQL in batch, rewrites documents in Elasticsearch, and invalidates or replaces relevant indices. API queries continue 100% in Elasticsearch and never query MySQL as a fallback.
 
-## Módulos E Contratos
+## Modules And Contracts
 
-Os componentes abaixo são requisitos de implementação e devem ser criados como projetos, namespaces e arquivos C# próprios. A organização combina Clean Architecture com Vertical Slice: os limites arquiteturais ficam nos projetos e cada feature agrupa endpoint, caso de uso, contratos e testes relacionados.
+The components below are implementation requirements and must be created as separate C# projects, namespaces, and files. The organization combines Clean Architecture with Vertical Slice: architectural boundaries are in projects and each feature groups endpoint, use case, contracts, and related tests.
 
-### Organização Por Agregado
+### Organization By Aggregate
 
-Arquivos que pertencem diretamente ao agregado `AccessUser` devem ficar agrupados por feature e namespace dentro da camada responsável, evitando poluir a pasta com arquivos de outros agregados. A organização esperada inclui:
+Files belonging directly to the `AccessUser` aggregate must be grouped by feature and namespace within the responsible layer, avoiding polluting the folder with files from other aggregates. Expected organization includes:
 
 ```text
 src/
@@ -131,45 +131,45 @@ src/
     AccessUsers/AccessUserResponse.cs
 ```
 
-O mesmo critério deve ser aplicado a novos agregados e componentes de domínio. `Outbox/OutboxRecord.cs` e `Outbox/Processor.cs` permanecem na camada transversal; o namespace `Outbox.AccessUser` concentra os eventos específicos desse agregado. Não devem ser criadas classes de agrupamento sem responsabilidade própria apenas para formar namespaces.
+The same criteria must be applied to new aggregates and domain components. `Outbox/OutboxRecord.cs` and `Outbox/Processor.cs` remain in the cross-cutting layer; the `Outbox.AccessUser` namespace concentrates events specific to this aggregate. Grouping classes without their own responsibility must not be created just to form namespaces.
 
-A implementação deve seguir a divisão em módulos para preservar baixo acoplamento e manter a regra do projeto:
+Implementation must follow module division to preserve low coupling and maintain project rules:
 
-- `Domain`: entidades, value objects, enums e regras internas. Ex.: `AccessUser`, `AccessUserStatus`, `EmailAddress`, `UserId`, `PasswordHash`.
-- `Application/Commands`: comandos de escrita. Ex.: `CreateAccessUserCommand`, `UpdateAccessUserCommand`, `LoginAccessUserCommand`, cada um recebendo um DTO e retornando resultado tipado com erros de validação ou domínio.
-- `Application/Queries`: consultas de leitura. Ex.: `GetAccessUserQuery`, `ListAccessUsersQuery`, sempre retornando views públicas sem efeitos colaterais.
-- `Application/Abstractions`: portas para escrita, leitura, mensageria e segurança. `IAccessUserWriteRepository` define `InsertAsync`, `UpdateAsync`, `FindByIdAsync`, `FindByEmailAsync` e `SaveOutboxEventAsync`; `IAccessUserReadRepository` define busca por id, filtros e paginação no Elasticsearch.
-- `Outbox`: entidade de evento transacional e `BackgroundService` com retry, backoff, idempotência e observabilidade.
-- `Auth`: validação de senha, emissão e validação de token, e policies/middleware para autorização por papel.
-- `Api/Endpoints`: Minimal APIs, grupos de rota e conversão entre HTTP e casos de uso, sem lógica de domínio embutida.
+- `Domain`: entities, value objects, enums, and internal rules. E.g., `AccessUser`, `AccessUserStatus`, `EmailAddress`, `UserId`, `PasswordHash`.
+- `Application/Commands`: write commands. E.g., `CreateAccessUserCommand`, `UpdateAccessUserCommand`, `LoginAccessUserCommand`, each receiving a DTO and returning a typed result with validation or domain errors.
+- `Application/Queries`: read queries. E.g., `GetAccessUserQuery`, `ListAccessUsersQuery`, always returning public views without side effects.
+- `Application/Abstractions`: ports for write, read, messaging, and security. `IAccessUserWriteRepository` defines `InsertAsync`, `UpdateAsync`, `FindByIdAsync`, `FindByEmailAsync`, and `SaveOutboxEventAsync`; `IAccessUserReadRepository` defines search by id, filters, and pagination in Elasticsearch.
+- `Outbox`: transactional event entity and `BackgroundService` with retry, backoff, idempotency, and observability.
+- `Auth`: password validation, token issuance and validation, and policies/middleware for role-based authorization.
+- `Api/Endpoints`: Minimal APIs, route groups, and conversion between HTTP and use cases, without embedded domain logic.
 
-### Convenção De Arquivos C#
+### C# File Convention
 
-Cada classe, record, interface ou componente principal deve ficar em um arquivo PascalCase correspondente à sua responsabilidade. Na infraestrutura, por exemplo, `MySqlAccessUserRepository` fica em `Infrastructure/MySql/MySqlAccessUserRepository.cs`, `ElasticsearchAccessUserReadRepository` em `Infrastructure/Elasticsearch/ElasticsearchAccessUserReadRepository.cs`, `RabbitMqEventPublisher` em `Infrastructure/RabbitMq/RabbitMqEventPublisher.cs` e `RedisSessionStore` em `Infrastructure/Redis/RedisSessionStore.cs`.
+Each class, record, interface, or main component must be in a corresponding PascalCase file matching its responsibility. In infrastructure, for example, `MySqlAccessUserRepository` is in `Infrastructure/MySql/MySqlAccessUserRepository.cs`, `ElasticsearchAccessUserReadRepository` in `Infrastructure/Elasticsearch/ElasticsearchAccessUserReadRepository.cs`, `RabbitMqEventPublisher` in `Infrastructure/RabbitMq/RabbitMqEventPublisher.cs`, and `RedisSessionStore` in `Infrastructure/Redis/RedisSessionStore.cs`.
 
-Os nomes de métodos devem refletir a operação ou o evento de domínio que executam, com especificidade suficiente para não confundir responsabilidades. Usar convenções .NET como `CreateAsync`, `FindByIdAsync`, `PublishAsync` e `HandleAsync`, sempre com `CancellationToken` quando houver I/O.
+Method names must reflect the operation or domain event they execute, with enough specificity to not confuse responsibilities. Use .NET conventions like `CreateAsync`, `FindByIdAsync`, `PublishAsync`, and `HandleAsync`, always with `CancellationToken` when there is I/O.
 
-Quando uma entidade ou componente crescer, cada responsabilidade de domínio própria deve ficar em uma classe ou arquivo C# próprio. Por exemplo, a implementação de `AccessUserCreatedEvent` fica em `Outbox/AccessUser/AccessUserCreatedEvent.cs`, enquanto `Outbox/OutboxRecord.cs` permanece reservado ao modelo `OutboxRecord` e seus estados.
+When an entity or component grows, each own domain responsibility must be in its own class or C# file. For example, `AccessUserCreatedEvent` implementation is in `Outbox/AccessUser/AccessUserCreatedEvent.cs`, while `Outbox/OutboxRecord.cs` remains reserved for the `OutboxRecord` model and its states.
 
-Para o evento `AccessUserUpdated`, o mesmo padrão exige `AccessUserUpdatedEvent` em `Outbox/AccessUser/AccessUserUpdatedEvent.cs`. Eventos diferentes devem possuir payloads de domínio diferentes, mesmo quando compartilham os mesmos campos, e a outbox deve aceitar ambos sem alterar o contrato JSON dos payloads.
+For the `AccessUserUpdated` event, the same pattern requires `AccessUserUpdatedEvent` in `Outbox/AccessUser/AccessUserUpdatedEvent.cs`. Different events must have different domain payloads, even when sharing the same fields, and the outbox must accept both without altering the JSON payload contracts.
 
-`src/Backend.Api/Program.cs` fica fora desses limites como composition root da aplicação. Ele pode registrar rotas, middleware e dependências no IoC, mas não pode implementar validação, hash, regras de usuário, persistência, outbox ou armazenamento de estado. O endpoint de criação somente será considerado implementado quando respeitar o encadeamento `Endpoint -> Application/Commands -> Domain/Port -> Infrastructure/Adapter`.
+`src/Backend.Api/Program.cs` is outside these boundaries as the application composition root. It can register routes, middleware, and dependencies in IoC, but cannot implement validation, hash, user rules, persistence, outbox, or state storage. The creation endpoint will only be considered implemented when it respects the chaining `Endpoint -> Application/Commands -> Domain/Port -> Infrastructure/Adapter`.
 
-Os contratos devem manter um boundary claro: endpoints transformam HTTP em commands/queries, handlers de aplicação executam validação e domínio, e adaptadores de infraestrutura são a única troca de dados com MySQL/Elasticsearch/Redis.
+Contracts must maintain a clear boundary: endpoints transform HTTP into commands/queries, application handlers execute validation and domain, and infrastructure adapters are the only data exchange with MySQL/Elasticsearch/Redis.
 
-## Modelo De Usuário E Status
+## User Model And Status
 
-O modelo de domínio do usuário de acesso deve seguir a estrutura abaixo:
+The access user domain model must follow the structure below:
 
-- `id`: identificador UUIDv7 ou bigint gerado por banco, imutavel;
-- `email`: string normalizada para lowercase, sem espaços e validada por formato canonical;
-- `name`: nome de exibição com limite de caracteres e validação de tamanho;
-- `password_hash`: hash Argon2id, nunca armazenado em texto puro;
+- `id`: UUIDv7 or database-generated bigint identifier, immutable;
+- `email`: string normalized to lowercase, no spaces, validated by canonical format;
+- `name`: display name with character limit and length validation;
+- `password_hash`: Argon2id hash, never stored in plain text;
 - `status`: enum `active | disabled`;
-- `created_at` e `updated_at`: timestamps de auditoria;
-- `version`: número de versão para concorrência otimista.
+- `created_at` and `updated_at`: audit timestamps;
+- `version`: version number for optimistic concurrency.
 
-A tabela MySQL `access_users` deve seguir o esquema:
+The MySQL `access_users` table must follow the schema:
 
 ```sql
 CREATE TABLE access_users (
@@ -185,7 +185,7 @@ CREATE TABLE access_users (
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-A tabela MySQL `access_users_outbox` deve registrar cada evento gerado pela escrita do usuário na mesma transação:
+The MySQL `access_users_outbox` table must register each event generated by user write in the same transaction:
 
 ```sql
 CREATE TABLE access_users_outbox (
@@ -203,16 +203,16 @@ CREATE TABLE access_users_outbox (
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-Regras de domínio:
+Domain rules:
 
-- O e-mail é único no conjunto de usuários ativos e inativos e deve ser consultado em forma normalizada.
-- O status `disabled` bloqueia login e desabilita operações de autenticação, mas não remove o registro.
-- `PATCH` de usuário deve atualizar `updated_at` e incrementar `version` somente quando houver mudança relevante.
-- Operações de escrita devem rejeitar condições de concorrência quando `version` informado pelo cliente divergir do registro em banco.
+- Email is unique across active and inactive users and must be queried in normalized form.
+- `disabled` status blocks login and disables authentication operations, but does not remove the record.
+- User `PATCH` must update `updated_at` and increment `version` only when there is a relevant change.
+- Write operations must reject concurrency conditions when `version` provided by client diverges from the database record.
 
-## Unidade Transacional De Usuário E Evento
+## Transactional Unit Of User And Event
 
-A alteração do aggregate `AccessUser` e o registro do evento na outbox devem acontecer dentro da mesma transação InnoDB. O contrato de integração deve ser:
+The `AccessUser` aggregate change and outbox event registration must happen within the same InnoDB transaction. The integration contract must be:
 
 ```text
 begin transaction
@@ -221,37 +221,37 @@ begin transaction
 commit
 ```
 
-Se qualquer etapa falhar, a transação inteira deve ser revertida. Em termos de desenho da aplicação:
+If any step fails, the entire transaction must be rolled back. In terms of application design:
 
-- o command handler valida a entrada e cria o evento de domínio;
-- o repository de escrita persiste a entidade e o registro da outbox na mesma unidade transacional;
-- o processador da outbox somente publica eventos após o commit bem-sucedido;
-- a API não publica eventos fora da transação, nem grava eventos de domínio em handlers HTTP.
+- the command handler validates input and creates the domain event;
+- the write repository persists the entity and outbox record in the same transactional unit;
+- the outbox processor only publishes events after successful commit;
+- the API does not publish events outside the transaction, nor write domain events in HTTP handlers.
 
-Isso garante consistência entre estado e integração, sem permitir que o usuário seja alterado sem que um evento validado tenha sido registrado.
+This ensures consistency between state and integration, without allowing the user to be altered without a validated event being registered.
 
-## Segurança
+## Security
 
-- Nunca armazenar ou retornar senha em texto puro.
-- Usar biblioteca de hash de senha revisada, com parâmetros configuráveis.
-- Aplicar validação de entrada e limites de tamanho.
-- Evitar enumeração de usuários no login.
-- Definir autenticação e autorização para operações administrativas antes de liberar a API em produção.
-- Definir política de rate limiting e bloqueio de tentativas antes de expor o login publicamente.
+- Never store or return password in plain text.
+- Use a reviewed password hashing library with configurable parameters.
+- Apply input validation and size limits.
+- Avoid user enumeration in login.
+- Define authentication and authorization for administrative operations before releasing the API to production.
+- Define rate limiting and attempt blocking policy before exposing login publicly.
 
-## Decisões Registradas
+## Recorded Decisions
 
-- Banco de dados e provider de persistência: a decisão arquitetural permanece em `MySQL/InnoDB` com `utf8mb4` e repositório dedicado em C#/.NET, conforme ADR da infraestrutura.
-- Formato da credencial: usar JWT de acesso stateless com `sub`, `role` e `exp`, assinado com `RS256`. O token de acesso expira em 15 minutos e um refresh token, quando existir, é armazenado no Redis com TTL para revogação e invalidação rápida.
-- Regras de autorização: `admin` pode criar, alterar, listar e desabilitar qualquer usuário; `user` pode consultar o próprio perfil e atualizar apenas dados não sensíveis e de sua própria conta; anônimos não podem acessar endpoints de gestão. Toda operação valida o papel do token em cada request.
-- Algoritmo de hash: usar `Argon2id` com parâmetros configuráveis (memória 64 MiB, time cost 3, parallelism 2), armazenando somente `password_hash` e nunca a senha em texto puro. A política de rotação de senha exige rehash ao detectar parâmetros antigos ou quando a senha for alterada.
-- Estratégia de rate limiting e bloqueio de tentativas: aplicar limite por IP e por e-mail para login, com backoff exponencial e bloqueio temporário em Redis; respostas do login devem continuar genéricas para evitar enumeração.
+- Database and persistence provider: the architectural decision remains `MySQL/InnoDB` with `utf8mb4` and a dedicated C#/.NET repository, per infrastructure ADR.
+- Credential format: use stateless JWT access token with `sub`, `role`, and `exp`, signed with `RS256`. The access token expires in 15 minutes and a refresh token, when it exists, is stored in Redis with TTL for revocation and fast invalidation.
+- Authorization rules: `admin` can create, update, list, and disable any user; `user` can query their own profile and update only non-sensitive data of their own account; anonymous cannot access management endpoints. Every operation validates the token role in each request.
+- Hash algorithm: use `Argon2id` with configurable parameters (memory 64 MiB, time cost 3, parallelism 2), storing only `password_hash` and never the password in plain text. Password rotation policy requires rehash when detecting old parameters or when password is changed.
+- Rate limiting and attempt blocking strategy: apply limit by IP and by email for login, with exponential backoff and temporary blocking in Redis; login responses must remain generic to avoid enumeration.
 
-## Testes Obrigatórios
+## Mandatory Tests
 
-Os testes devem ser mantidos nos projetos `Backend.Api.UnitTests` e `Backend.Api.IntegrationTests`, segmentados por responsabilidade. A suíte não deve ficar concentrada em uma classe monolítica.
+Tests must be kept in `Backend.Api.UnitTests` and `Backend.Api.IntegrationTests` projects, segmented by responsibility. The suite must not be concentrated in a monolithic class.
 
-Estrutura esperada:
+Expected structure:
 
 ```text
 tests/
@@ -259,9 +259,13 @@ tests/
   Backend.Api.IntegrationTests/
 ```
 
-- Testes unitários de validação, normalização, senha, transições de status e regras de domínio.
-- Testes de command handlers para duplicidade, concorrência e atomicidade com a outbox.
-- Testes de queries sem efeitos colaterais e sem exposição de hash.
-- Testes de login bem-sucedido, senha inválida, usuário inexistente e usuário desabilitado.
-- Testes HTTP dos contratos, códigos de status e formato das respostas.
-- Testes do processador da outbox para retry, idempotência e falha de publicação.
+- Unit tests for validation, normalization, password, status transitions, and domain rules.
+- Command handler tests for duplication, concurrency, and atomicity with outbox.
+- Query tests without side effects and without hash exposure.
+- Tests for successful login, invalid password, non-existent user, and disabled user.
+- HTTP tests for contracts, status codes, and response formats.
+- Outbox processor tests for retry, idempotency, and publication failure.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

@@ -1,71 +1,71 @@
 # REST API .NET
 
-API backend completa em C# com ASP.NET Core sobre .NET 10 LTS. Gestão de usuários de acesso é uma das features planejadas do backend.
+Complete backend API in C# with ASP.NET Core on .NET 10 LTS. Access user management is one of the planned backend features.
 
-## Arquitetura
+## Architecture
 
-A solução usa Clean Architecture + Vertical Slice em .NET 10 LTS. Os projetos são `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure` e `Backend.Contracts`; `Program.cs` é o composition root e as dependências são registradas por IoC via `IServiceCollection`.
+The solution uses Clean Architecture + Vertical Slice in .NET 10 LTS. Projects are `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure`, and `Backend.Contracts`; `Program.cs` is the composition root and dependencies are registered via IoC through `IServiceCollection`.
 
-A API usa Minimal APIs, endpoints organizados por feature, PascalCase para arquivos/classes, versionamento `/api/v1`, OpenAPI e `ProblemDetails` para respostas de erro.
+The API uses Minimal APIs, endpoints organized by feature, PascalCase for files/classes, versioning `/api/v1`, OpenAPI, and `ProblemDetails` for error responses.
 
-- **CQRS**: commands alteram o write model; queries consultam o read model.
-- **MySQL 9.7.2 / InnoDB**: write model e fonte de verdade.
-- **Transactional Outbox**: uma outbox própria para cada tabela de domínio que produzir eventos.
-- **RabbitMQ 4.3.6**: transporte de eventos após o commit.
-- **Elasticsearch 9.5.4**: read model exclusivo das queries, inclusive consultas por id.
-- **Redis 8.8**: somente sessões, tokens revogados, rate limiting e dados temporários; não participa das queries de usuários.
-- **.NET 10 LTS**: runtime e SDK padrão da aplicação.
-- **Docker**: ambiente padrão para restore, build, testes e execução.
+- **CQRS**: commands alter the write model; queries consult the read model.
+- **MySQL 9.7.2 / InnoDB**: write model and source of truth.
+- **Transactional Outbox**: one dedicated outbox per domain table that produces events.
+- **RabbitMQ 4.3.6**: event transport after commit.
+- **Elasticsearch 9.5.4**: exclusive read model for queries, including by-id lookups.
+- **Redis 8.8**: sessions, revoked tokens, rate limiting, and temporary data only; does not participate in user queries.
+- **.NET 10 LTS**: runtime and SDK for the application.
+- **Docker**: standard environment for restore, build, tests, and execution.
 
-O fluxo de desenvolvimento é:
+Development flow:
 
 ```text
 spec -> plan -> tasks -> implementation -> tests -> update docs
 ```
 
-## Executar Com Docker
+## Run With Docker
 
-A stack completa do backend deve subir via Docker Compose, incluindo os serviços de banco, fila, busca, cache, configurações de bootstrap e os scripts de inicialização necessários para que o ambiente local fique funcional desde o primeiro `up`.
+The complete backend stack must start via Docker Compose, including database, queue, search, cache services, bootstrap configurations, and initialization scripts so the local environment is functional from the first `up`.
 
-Subir toda a stack de desenvolvimento:
+Start the full development stack:
 
 ```bash
 docker compose up --build
 ```
 
-Subir apenas o servico HTTP atual:
+Start only the current HTTP service:
 
 ```bash
 docker compose up --build rest-server
 ```
 
-Executar os testes no estagio Docker de testes:
+Run tests in the Docker test stage:
 
 ```bash
 docker compose --profile test build rest-test
 docker compose --profile test run --rm rest-test
 ```
 
-O serviço `rest-test` executa a suíte .NET isoladamente e não inicia MySQL, RabbitMQ, Elasticsearch ou Redis. Os testes HTTP substituem as portas externas por doubles; os testes de infraestrutura devem usar o Compose completo.
+The `rest-test` service runs the .NET test suite in isolation and does not start MySQL, RabbitMQ, Elasticsearch, or Redis. HTTP tests replace external ports with doubles; infrastructure tests must use the full Compose stack.
 
-A API fica disponível em `https://localhost:8443` usando o certificado de desenvolvimento do ASP.NET Core. O endpoint HTTP `http://localhost:8080` permanece disponível para redirecionar clientes para HTTPS quando executado com `dotnet run`.
+The API is available at `https://localhost:8443` using the ASP.NET Core development certificate. The HTTP endpoint `http://localhost:8080` remains available to redirect clients to HTTPS when run with `dotnet run`.
 
-### HTTPS Local
+### Local HTTPS
 
-Confiar no certificado de desenvolvimento uma vez no host:
+Trust the development certificate once on the host:
 
 ```bash
 dotnet dev-certs https --clean
 dotnet dev-certs https --trust
 ```
 
-Executar a API localmente:
+Run the API locally:
 
 ```bash
 dotnet run --project src/Backend.Api/Backend.Api.csproj
 ```
 
-Para executar pelo Docker Compose, exportar o certificado para o caminho montado pelo serviço:
+To run via Docker Compose, export the certificate to the path mounted by the service:
 
 ```bash
 mkdir -p "$HOME/.aspnet/https"
@@ -73,46 +73,50 @@ dotnet dev-certs https -ep "$HOME/.aspnet/https/backend-api.pfx" -p local-develo
 docker compose up --build rest-server
 ```
 
-O Compose publica `https://localhost:8443` e usa o certificado apenas dentro do ambiente local. Como o certificado de desenvolvimento não é uma autoridade pública, clientes de linha de comando podem precisar de `curl -k` até que a cadeia local seja confiada.
+Compose publishes `https://localhost:8443` and uses the certificate only within the local environment. Since the development certificate is not a public authority, command-line clients may need `curl -k` until the local chain is trusted.
 
-### Bootstrap no Docker Compose
+### Bootstrap in Docker Compose
 
-- As migrações SQL do MySQL devem ficar em `migrations/*.sql` e ser versionadas no repositório.
-- O ambiente Docker Compose deve incluir inicialização automática para MySQL, RabbitMQ e Elasticsearch antes de a API ficar pronta para uso.
-- O bootstrap do RabbitMQ deve criar exchange, fila e bindings basicos para o fluxo da outbox.
-- O bootstrap do Elasticsearch deve criar índices e mappings iniciais, como `access_users`, sem depender do app para criar o schema em runtime.
-- O bootstrap da stack deve garantir que `access_users`, `access_users_outbox`, fila de eventos e indice de consulta sejam criados automaticamente ao subir a infraestrutura.
-- A aplicação não deve depender de SQL gerado em runtime em handlers HTTP; o schema deve ser aplicado por migração reproduzível.
+- MySQL SQL migrations must be in `migrations/*.sql` and versioned in the repository.
+- The Docker Compose environment must include automatic initialization for MySQL, RabbitMQ, and Elasticsearch before the API is ready for use.
+- RabbitMQ bootstrap must create basic exchange, queue, and bindings for the outbox flow.
+- Elasticsearch bootstrap must create initial indices and mappings, such as `access_users`, without relying on the app to create the schema at runtime.
+- Stack bootstrap must ensure `access_users`, `access_users_outbox`, event queue, and query index are created automatically when infrastructure starts.
+- The application must not depend on runtime-generated SQL in HTTP handlers; schema must be applied by reproducible migration.
 
-## Desenvolvimento Orientado Por Especificação
+## Specification-Driven Development
 
-Antes de implementar uma funcionalidade:
+Before implementing a feature:
 
-1. Atualize ou crie a especificação em `docs/specs/`.
-2. Registre decisoes tecnicas em `docs/decisions/`.
-3. Atualize o plano em `docs/plans/`.
-4. Derive tarefas em `docs/tasks/`.
-5. Implemente em modulos separados por responsabilidade.
-6. Adicione testes unitários e de integração.
-7. Atualize a documentação e execute as validações Docker.
+1. Update or create the specification in `docs/specs/`.
+2. Record technical decisions in `docs/decisions/`.
+3. Update the plan in `docs/plans/`.
+4. Derive tasks in `docs/tasks/`.
+5. Implement in modules separated by responsibility.
+6. Add unit and integration tests.
+7. Update documentation and run Docker validations.
 
-## Documentação
+## Documentation
 
-- [`AGENTS.md`](AGENTS.md): instrucoes compartilhadas para pessoas e agentes de qualquer ferramenta.
-- [`docs/README.md`](docs/README.md): indice da documentacao SDD.
-- [`docs/constitution.md`](docs/constitution.md): principios e Definition of Done.
-- [`docs/architecture.md`](docs/architecture.md): arquitetura e limites entre write/read model.
-- [`docs/specs/access-user-management.md`](docs/specs/access-user-management.md): especificacao da API de usuarios.
-- [`docs/infrastructure/`](docs/infrastructure/): MySQL, RabbitMQ, Elasticsearch e Redis.
-- [`docs/decisions/`](docs/decisions/): ADRs e consequencias das escolhas.
-- [`docs/plans/`](docs/plans/): planos de implementacao.
-- [`docs/tasks/`](docs/tasks/): checklists executaveis.
+- [`AGENTS.md`](AGENTS.md): shared instructions for people and agents of any tool.
+- [`docs/README.md`](docs/README.md): SDD documentation index.
+- [`docs/constitution.md`](docs/constitution.md): principles and Definition of Done.
+- [`docs/architecture.md`](docs/architecture.md): architecture and write/read model boundaries.
+- [`docs/specs/access-user-management.md`](docs/specs/access-user-management.md): user management API specification.
+- [`docs/infrastructure/`](docs/infrastructure/): MySQL, RabbitMQ, Elasticsearch, and Redis.
+- [`docs/decisions/`](docs/decisions/): ADRs and consequences of choices.
+- [`docs/plans/`](docs/plans/): implementation plans.
+- [`docs/tasks/`](docs/tasks/): executable checklists.
 
-## Regras Para Desenvolvimento
+## Development Rules
 
-- Manter commands, queries, dominio, persistencia, handlers e projetores em modulos separados.
-- Nao consultar MySQL no caminho normal das queries; usar Elasticsearch.
-- Nao publicar eventos antes do commit da transacao.
-- Nunca armazenar ou expor senhas em texto puro.
-- Criar testes para cada comportamento novo ou alterado.
-- Revisar nullability, concorrencia, ciclos de vida do DI, cancelamento e possiveis vazamentos de recursos.
+- Keep commands, queries, domain, persistence, handlers, and projectors in separate modules.
+- Do not query MySQL in the normal query path; use Elasticsearch.
+- Do not publish events before the transaction commit.
+- Never store or expose passwords in plain text.
+- Create tests for each new or changed behavior.
+- Review nullability, concurrency, DI lifecycles, cancellation, and possible resource leaks.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

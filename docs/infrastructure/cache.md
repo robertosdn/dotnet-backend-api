@@ -1,30 +1,34 @@
-# Infraestrutura: Redis
+# Infrastructure: Redis
 
 ## Status
 
-Aprovada somente para sessões e dados temporários, fora do read model de CQRS.
+Approved only for sessions and temporary data, outside the CQRS read model.
 
-## Responsabilidade
+## Responsibility
 
-Redis será usado para sessões, tokens revogados, rate limiting e outros dados temporários. Redis não será usado para consultas do read model de usuários e nunca será fonte de verdade dos usuários ou das transações.
+Redis will be used for sessions, revoked tokens, rate limiting, and other temporary data. Redis will not be used for user read model queries and will never be the source of truth for users or transactions.
 
-## Regras
+## Rules
 
-- Toda chave deve possuir namespace e versão, por exemplo `session:v1:{id}`.
-- Toda entrada deve possuir TTL explícito, salvo decisão documentada.
-- O sistema deve continuar correto quando o Redis estiver indisponível.
-- A indisponibilidade do Redis deve bloquear apenas o recurso temporário que depende dele; queries de usuários não devem tentar usá-lo.
-- Invalidação ou atualização de sessões deve ocorrer conforme o ciclo de vida da sessão.
-- Não armazenar senha em texto puro.
-- Segredos, tokens e sessões devem ter política de expiração e revogação.
+- Every key must have a namespace and version, e.g., `session:v1:{id}`.
+- Every entry must have an explicit TTL, unless a documented decision states otherwise.
+- The system must remain correct when Redis is unavailable.
+- Redis unavailability must only block the temporary resource that depends on it; user queries must not attempt to use it.
+- Session invalidation or update must occur according to the session lifecycle.
+- Do not store passwords in plain text.
+- Secrets, tokens, and sessions must have expiration and revocation policy.
 
-## Consistencia
+## Consistency
 
-O MySQL permanece como write model e o Elasticsearch como read model. Redis não faz parte do caminho de consulta dos usuários.
+MySQL remains the write model and Elasticsearch the read model. Redis is not part of the user query path.
 
-## Testes
+## Tests
 
-- Criação, renovação, revogação e expiração de sessões.
-- Redis indisponível sem corromper os dados persistidos.
-- Rate limiting e tokens revogados, quando implementados.
-- Rate limiting e revogação de credencial, quando implementados.
+- Session creation, renewal, revocation, and expiration.
+- Redis unavailable without corrupting persisted data.
+- Rate limiting and revoked tokens, when implemented.
+- Rate limiting and credential revocation, when implemented.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

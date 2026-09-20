@@ -1,50 +1,54 @@
-# Infraestrutura: Elasticsearch
+# Infrastructure: Elasticsearch
 
 ## Status
 
-Aprovada como read model das queries.
+Approved as query read model.
 
-## Responsabilidade
+## Responsibility
 
-Elasticsearch será o mecanismo exclusivo de consulta da API de usuários de acesso, inclusive consultas por identificador. MySQL continua sendo o write model e a fonte de verdade dos commands; Elasticsearch é uma projeção derivada e reconstruível.
+Elasticsearch will be the exclusive query mechanism for the access user API, including by-identifier lookups. MySQL remains the write model and source of truth for commands; Elasticsearch is a derived and rebuildable projection.
 
-## Fluxo
+## Flow
 
 ```text
 Command -> MySQL + Outbox -> RabbitMQ -> Elasticsearch index
 Query   -> Elasticsearch
 ```
 
-O consumidor deve projetar os eventos da outbox no índice correspondente depois que o commit do MySQL for concluído. A entrega e a projeção devem ser idempotentes usando o identificador do evento e a versão do agregado.
+The consumer must project outbox events into the corresponding index after the MySQL commit is complete. Delivery and projection must be idempotent using the event identifier and aggregate version.
 
-## Bootstrap Local Com Docker Compose
+## Local Bootstrap With Docker Compose
 
-O ambiente local deve subir com `docker compose up --build` e o Elasticsearch deve iniciar com o índice básico da API predefinido:
+The local environment must start with `docker compose up --build` and Elasticsearch must start with the basic API index predefined:
 
-- índice `access_users`
-- mappings para `id`, `email`, `name`, `status`, `version`, `created_at` e `updated_at`
-- shards em 1 e réplicas em 0 para ambiente local
+- index `access_users`
+- mappings for `id`, `email`, `name`, `status`, `version`, `created_at`, and `updated_at`
+- shards at 1 and replicas at 0 for local environment
 
-A criação do índice deve ocorrer em um passo de bootstrap do Docker Compose, para que a API encontre o read model pronto no primeiro uso, sem necessidade de criar o mapeamento manualmente.
+Index creation must occur in a Docker Compose bootstrap step, so the API finds the read model ready on first use, without needing to create the mapping manually.
 
-## Regras
+## Rules
 
-- Queries não podem consultar MySQL como fallback.
-- Consultas por `id`, filtros, paginação e busca textual devem usar Elasticsearch.
-- Não indexar `password_hash`, senhas, tokens ou segredos.
-- Definir mappings, aliases, política de versionamento e estratégia de reindexação.
-- Configurar replicas, refresh interval, timeouts e limites de paginação.
-- Aceitar consistência eventual entre uma escrita no MySQL e sua disponibilidade no índice.
-- Reconstruir o índice a partir do MySQL por processo operacional, sem transformar essa reconstrução em fallback de query.
+- Queries cannot query MySQL as a fallback.
+- Queries by `id`, filters, pagination, and text search must use Elasticsearch.
+- Do not index `password_hash`, passwords, tokens, or secrets.
+- Define mappings, aliases, versioning policy, and reindexing strategy.
+- Configure replicas, refresh interval, timeouts, and pagination limits.
+- Accept eventual consistency between a MySQL write and its availability in the index.
+- Rebuild the index from MySQL via an operational process, without turning this rebuild into a query fallback.
 
-## Comportamento De Falhas
+## Failure Behavior
 
-Se Elasticsearch estiver indisponível, as queries devem retornar erro observável de read model indisponível. O sistema não deve consultar MySQL silenciosamente para mascarar a falha.
+If Elasticsearch is unavailable, queries must return an observable read model unavailable error. The system must not silently query MySQL to mask the failure.
 
-## Testes
+## Tests
 
-- Projeção de eventos de criação, alteração e desativação.
-- Projeção idempotente e ordenação por versão.
-- Consulta por id, filtros, paginação e busca textual.
-- Falha do Elasticsearch sem fallback para MySQL.
-- Reindexação e recuperação após perda do índice.
+- Projection of creation, update, and deactivation events.
+- Idempotent projection and ordering by version.
+- Query by id, filters, pagination, and text search.
+- Elasticsearch failure without MySQL fallback.
+- Reindexing and recovery after index loss.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

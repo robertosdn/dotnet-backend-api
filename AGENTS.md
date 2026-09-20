@@ -1,61 +1,65 @@
-# Instruções Do Projeto
+# Project Instructions
 
-Estas instruções são aplicáveis a pessoas e a qualquer agente de desenvolvimento utilizado neste repositório.
+These instructions apply to people and any development agent used in this repository.
 
-## Objetivo
+## Objective
 
-Desenvolver uma API backend completa em .NET 10 LTS com C#, modular, testável e preparada para evoluir com múltiplas features de negócio, incluindo gestão de usuários de acesso.
+Develop a complete backend API in .NET 10 LTS with C#, modular, testable, and prepared to evolve with multiple business features, including access user management.
 
-## Arquitetura Obrigatória
+## Mandatory Architecture
 
-- Usar CQRS: commands alteram o write model; queries somente consultam o read model.
-- Usar MySQL com InnoDB e `utf8mb4` como write model e fonte de verdade.
-- Usar Transactional Outbox: cada tabela de domínio que produzir eventos deve ter sua própria outbox, gravada atomicamente com a alteração de domínio.
-- Usar RabbitMQ para transportar eventos após o commit.
-- Usar Elasticsearch como read model exclusivo das queries, inclusive consultas por id. Queries não devem consultar MySQL como fallback.
-- Usar Redis somente para sessões, tokens revogados, rate limiting e dados temporários. Redis não participa do read model de usuários.
+- Use CQRS: commands alter the write model; queries only consult the read model.
+- Use MySQL with InnoDB and `utf8mb4` as write model and source of truth.
+- Use Transactional Outbox: each domain table that produces events must have its own outbox, written atomically with the domain change.
+- Use RabbitMQ to transport events after commit.
+- Use Elasticsearch as the exclusive read model for queries, including by-id lookups. Queries must not query MySQL as a fallback.
+- Use Redis only for sessions, revoked tokens, rate limiting, and temporary data. Redis does not participate in the user read model.
 
-## Modularidade
+## Modularity
 
-- Usar Clean Architecture + Vertical Slice: separar `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure` e `Backend.Contracts`.
-- Separar domínio, commands, queries, endpoints HTTP, persistência, outbox, projetores e infraestrutura em classes e arquivos PascalCase próprios.
-- Aplicar SOLID de forma pragmática e usar IoC pelo `IServiceCollection`; `Program.cs` deve ser somente o composition root.
-- Manter métodos pequenos, responsabilidades claras e componentes reutilizáveis.
-- Evitar arquivos monolíticos e abstrações artificiais.
+- Use Clean Architecture + Vertical Slice: separate `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure`, and `Backend.Contracts`.
+- Separate domain, commands, queries, HTTP endpoints, persistence, outbox, projectors, and infrastructure into their own PascalCase classes and files.
+- Apply SOLID pragmatically and use IoC via `IServiceCollection`; `Program.cs` must be only the composition root.
+- Keep methods small, responsibilities clear, and components reusable.
+- Avoid monolithic files and artificial abstractions.
 
-## Segurança E Memória
+## Security And Memory
 
-- Nunca armazenar ou expor senhas em texto puro.
-- Usar nullable reference types, `Result`/`ProblemDetails`, `async`/`await`, `CancellationToken` e `IDisposable`/`IAsyncDisposable` para tratar estados e recursos.
-- Revisar concorrência, tasks, canais, locks, conexões, cancellation tokens e escopos de DI.
-- Procurar nullability incorreta, deadlocks, data races lógicas, vazamentos de conexões e tarefas não observadas.
+- Never store or expose passwords in plain text.
+- Use nullable reference types, `Result`/`ProblemDetails`, `async`/`await`, `CancellationToken`, and `IDisposable`/`IAsyncDisposable` to handle states and resources.
+- Review concurrency, tasks, channels, locks, connections, cancellation tokens, and DI scopes.
+- Look for incorrect nullability, deadlocks, logical data races, connection leaks, and unobserved tasks.
 
-## Docker E Validação
+## Docker And Validation
 
-- Usar Docker Compose ou as etapas do Dockerfile para restaurar, compilar, testar e executar .NET.
-- Executar as validações aplicáveis dentro do Docker, incluindo `dotnet format --verify-no-changes`, `dotnet test` e `dotnet build --warnaserror`.
-- Não considerar uma alteração concluída sem relatar os comandos executados e seus resultados.
+- Use Docker Compose or Dockerfile stages to restore, build, test, and run .NET.
+- Run applicable validations inside Docker, including `dotnet format --verify-no-changes`, `dotnet test`, and `dotnet build --warnaserror`.
+- Do not consider a change complete without reporting the commands executed and their results.
 
-## SDD E Sincronização
+## SDD And Synchronization
 
-O padrão de desenvolvimento Specification-Driven Development (SDD) deste projeto está documentado em [`docs/README.md`](docs/README.md). Consulte a documentação referenciada ali antes de implementar uma funcionalidade.
+The Specification-Driven Development (SDD) pattern for this project is documented in [`docs/README.md`](docs/README.md). Consult the referenced documentation before implementing a feature.
 
-Seguir o fluxo:
+Follow the flow:
 
 ```text
 spec -> plan -> tasks -> implementation -> tests -> update docs
 ```
 
-Sempre que alterar infraestrutura, dependências, `Dockerfile`, `docker-compose.yml`, variáveis de ambiente ou comandos de build, teste e execução:
+Whenever you change infrastructure, dependencies, `Dockerfile`, `docker-compose.yml`, environment variables, or build, test, and run commands:
 
-- Atualizar os arquivos `.md` correspondentes em `README.md`, `docs/`, planos, tarefas e ADRs aplicáveis.
-- Atualizar todos os exemplos de comandos afetados.
-- Atualizar health checks, portas, volumes e configurações documentadas quando mudarem.
-- Manter código, configuração operacional, comandos e documentação sincronizados.
+- Update the corresponding `.md` files in `README.md`, `docs/`, plans, tasks, and applicable ADRs.
+- Update all affected command examples.
+- Update health checks, ports, volumes, and documented configurations when they change.
+- Keep code, operational configuration, commands, and documentation synchronized.
 
-## Mudanças
+## Changes
 
-- Ler a especificação, o plano, as tarefas e os testes relacionados antes de editar.
-- Fazer a menor mudança coerente com a arquitetura existente.
-- Adicionar ou atualizar testes unitários e de integração para cada comportamento alterado.
-- Não descartar mudanças preexistentes nem alterar arquivos fora do escopo sem necessidade.
+- Read the specification, plan, tasks, and related tests before editing.
+- Make the smallest change consistent with the existing architecture.
+- Add or update unit and integration tests for each changed behavior.
+- Do not discard pre-existing changes or modify files outside scope without necessity.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

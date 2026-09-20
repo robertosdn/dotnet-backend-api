@@ -1,33 +1,33 @@
-# Infraestrutura: MySQL
+# Infrastructure: MySQL
 
 ## Status
 
-Aprovada para a primeira implementação persistente.
+Approved for the first persistent implementation.
 
-## Escolha
+## Choice
 
-- Banco: MySQL 9.7.2.
-- Storage engine: InnoDB em todas as tabelas de domínio e outbox.
+- Database: MySQL 9.7.2.
+- Storage engine: InnoDB in all domain and outbox tables.
 - Charset: `utf8mb4`.
-- Collation: definir explicitamente por ambiente, preferindo uma collation `utf8mb4` determinística.
-- Acesso: provider ADO.NET/EF Core ou micro-ORM aprovado para MySQL; as queries de escrita usam transações explícitas.
+- Collation: explicitly defined per environment, preferring a deterministic `utf8mb4` collation.
+- Access: approved ADO.NET/EF Core or micro-ORM provider for MySQL; write queries use explicit transactions.
 
-> O MySQL possui o charset histórico `utf8` limitado a 3 bytes. Para suportar Unicode completo, inclusive emoji, o projeto deve usar `utf8mb4` nas tabelas, conexões e migrações.
+> MySQL has a legacy `utf8` charset limited to 3 bytes. To support full Unicode, including emoji, the project must use `utf8mb4` in tables, connections, and migrations.
 
-## Regras De Modelagem
+## Modeling Rules
 
-- Toda tabela deve declarar `ENGINE=InnoDB` e `CHARACTER SET=utf8mb4`.
-- Chaves primárias e estrangeiras devem ser indexadas.
-- E-mails devem ter normalização e unicidade definidas no schema.
-- Senhas devem ser armazenadas somente como hash.
-- Datas devem usar uma convenção UTC documentada.
-- Alterações de schema devem ser versionadas por migrações reproduzíveis.
+- Every table must declare `ENGINE=InnoDB` and `CHARACTER SET=utf8mb4`.
+- Primary and foreign keys must be indexed.
+- Emails must have normalization and uniqueness defined in schema.
+- Passwords must be stored only as hash.
+- Dates must use a documented UTC convention.
+- Schema changes must be versioned by reproducible migrations.
 
-## Migrações E Bootstrap Com Docker Compose
+## Migrations And Bootstrap With Docker Compose
 
-A stack deve ser iniciada por `docker compose up --build`, e o ambiente deve incluir a aplicação das migrações SQL antes de a API ficar pronta para uso.
+The stack must be started by `docker compose up --build`, and the environment must include SQL migration application before the API is ready for use.
 
-Estrutura esperada:
+Expected structure:
 
 ```text
 migrations/
@@ -35,26 +35,30 @@ migrations/
   002_create_access_users_outbox.sql
 ```
 
-O processo de bootstrap deve garantir que:
+The bootstrap process must ensure:
 
-- o MySQL suba com volume persistente;
-- os scripts SQL sejam aplicados em ordem numerada;
-- tabelas de domínio e outbox sejam criadas no mesmo ambiente reproduzível;
-- a API e os demais serviços esperem a inicialização completa do banco antes de receber tráfego.
+- MySQL starts with a persistent volume;
+- SQL scripts are applied in numbered order;
+- domain and outbox tables are created in the same reproducible environment;
+- API and other services wait for complete database initialization before receiving traffic.
 
-As migrações devem ser versionadas no repositório e executadas por um job de init ou por um container de migração no `docker-compose.yml`.
+Migrations must be versioned in the repository and executed by an init job or a migration container in `docker-compose.yml`.
 
-## Outbox Por Tabela
+## Outbox Per Table
 
-Cada tabela de domínio que produzir eventos terá sua própria tabela de outbox. Para o usuário de acesso, por exemplo, a tabela `access_users` será acompanhada de `access_users_outbox`.
+Each domain table that produces events will have its own outbox table. For the access user, for example, the `access_users` table will be accompanied by `access_users_outbox`.
 
-A escrita do registro de domínio e do registro correspondente na outbox deve ocorrer na mesma transação InnoDB. A outbox deve conter, no mínimo, `event_id`, `aggregate_id`, `event_type`, `payload`, `status`, `attempts`, `available_at`, `created_at`, `published_at` e `last_error`.
+The domain record write and corresponding outbox record must occur in the same InnoDB transaction. The outbox must contain, at minimum, `event_id`, `aggregate_id`, `event_type`, `payload`, `status`, `attempts`, `available_at`, `created_at`, `published_at`, and `last_error`.
 
-Cada outbox pode ser processada independentemente, mas todos os eventos devem carregar um identificador globalmente único para idempotência no RabbitMQ e nos consumidores.
+Each outbox can be processed independently, but all events must carry a globally unique identifier for idempotency in RabbitMQ and consumers.
 
-## Testes
+## Tests
 
-- Testar migrações em banco MySQL real via Docker.
-- Testar rollback quando a escrita da outbox falhar.
-- Testar unicidade, concorrência otimista e charset `utf8mb4`.
-- Testar que nenhuma senha ou segredo é persistido em texto puro.
+- Test migrations in real MySQL via Docker.
+- Test rollback when outbox write fails.
+- Test uniqueness, optimistic concurrency, and `utf8mb4` charset.
+- Test that no password or secret is persisted in plain text.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.

@@ -1,32 +1,36 @@
-# Constituição do Projeto
+# Project Constitution
 
-## Objetivo
+## Objective
 
-Manter uma API backend completa em C# sobre .NET 10 LTS, testável e preparada para evoluir com múltiplas features sem perder clareza arquitetural.
+Maintain a complete backend API in C# on .NET 10 LTS, testable, and prepared to evolve with multiple features without losing architectural clarity.
 
-## Princípios Obrigatórios
+## Mandatory Principles
 
-1. **C#/.NET idiomático**: preferir tipos fortes, nullable reference types, erros explícitos, async/await e responsabilidades pequenas.
-2. **CQRS**: separar operações que alteram estado (commands) de operações que apenas consultam estado (queries).
-3. **Transactional Outbox**: quando uma operação alterar estado e gerar evento de integração, persistir ambos na mesma transação atômica antes de publicar o evento.
-4. **Idempotência**: comandos e o processamento da outbox devem tolerar retries sem duplicar efeitos.
-5. **Testes segmentados**: toda funcionalidade nova ou alterada deve ter testes unitários e, quando aplicável, testes de integração em classes separadas nos projetos `*.Tests`; não concentrar a suíte em uma classe monolítica.
-6. **Docker**: compilar, testar e executar a aplicação preferencialmente por Docker Compose ou pelas etapas do Dockerfile.
-7. **Mudanças pequenas**: evitar refatorações fora do escopo e preservar contratos existentes.
-8. **Modularidade verificável**: responsabilidades devem estar em projetos, namespaces e arquivos próprios conforme o plano; `Program.cs` é ponto de composição, não local para regras de negócio ou infraestrutura.
-9. **SOLID pragmático**: aplicar responsabilidade única, inversão de dependência e interfaces somente quando representarem portas, políticas ou variações reais.
-10. **IoC explícito**: registrar dependências por extensões de `IServiceCollection`; evitar service locator, estado global e dependências concretas nos casos de uso.
-11. **API .NET idiomática**: usar Minimal APIs, grupos versionados em `/api/v1`, `ProblemDetails`, OpenAPI e `CancellationToken` em operações de I/O.
+1. **Idiomatic C#/.NET**: prefer strong types, nullable reference types, explicit errors, async/await, and small responsibilities.
+2. **CQRS**: separate operations that alter state (commands) from operations that only query state (queries).
+3. **Transactional Outbox**: when an operation alters state and generates an integration event, persist both in the same atomic transaction before publishing the event.
+4. **Idempotency**: commands and outbox processing must tolerate retries without duplicating effects.
+5. **Segmented Tests**: every new or changed feature must have unit tests and, when applicable, integration tests in separate classes in `*.Tests` projects; do not concentrate the suite in a monolithic class.
+6. **Docker**: build, test, and run the application preferably via Docker Compose or Dockerfile stages.
+7. **Small Changes**: avoid out-of-scope refactoring and preserve existing contracts.
+8. **Verifiable Modularity**: responsibilities must be in their own projects, namespaces, and files per the plan; `Program.cs` is the composition point, not a place for business rules or infrastructure.
+9. **Pragmatic SOLID**: apply single responsibility, dependency inversion, and interfaces only when they represent ports, policies, or real variations.
+10. **Explicit IoC**: register dependencies via `IServiceCollection` extensions; avoid service locator, global state, and concrete dependencies in use cases.
+11. **Idiomatic .NET API**: use Minimal APIs, versioned groups in `/api/v1`, `ProblemDetails`, OpenAPI, and `CancellationToken` in I/O operations.
 
 ## Definition Of Done
 
-Uma mudanca so esta concluida quando:
+A change is only complete when:
 
-- a especificação correspondente foi atualizada;
-- commands, queries e eventos estão separados conforme aplicável;
-- a estrutura de projetos prevista no plano existe e `Program.cs` contém somente composição do host e registro de dependências/rotas;
-- os projetos dependem em uma única direção e `Backend.Domain` não depende de ASP.NET Core ou infraestrutura;
-- os testes unitários e de integração relevantes foram adicionados ou atualizados;
-- os testes estão segmentados por camada nos projetos `*.Tests`, sem classe monolítica de testes;
-- `dotnet format --verify-no-changes`, `dotnet test` e `dotnet build --warnaserror` foram executados no Docker quando suportados pelo ambiente;
-- riscos, limitacoes e comandos executados foram registrados no resumo da mudanca.
+- the corresponding specification has been updated;
+- commands, queries, and events are separated as applicable;
+- the planned project structure exists and `Program.cs` contains only host composition and dependency/route registration;
+- projects depend in a single direction and `Backend.Domain` does not depend on ASP.NET Core or infrastructure;
+- relevant unit and integration tests have been added or updated;
+- tests are segmented by layer in `*.Tests` projects, without a monolithic test class;
+- `dotnet format --verify-no-changes`, `dotnet test`, and `dotnet build --warnaserror` have been executed in Docker when supported by the environment;
+- risks, limitations, and executed commands have been recorded in the change summary.
+
+---
+
+**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.
