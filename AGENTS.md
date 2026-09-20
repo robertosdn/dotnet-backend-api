@@ -1,6 +1,6 @@
 # Instruções Do Projeto
 
-Estas instrucoes sao aplicaveis a pessoas e a qualquer agente de desenvolvimento utilizado neste repositorio.
+Estas instruções são aplicáveis a pessoas e a qualquer agente de desenvolvimento utilizado neste repositório.
 
 ## Objetivo
 
@@ -38,7 +38,7 @@ Desenvolver uma API backend completa em .NET 10 LTS com C#, modular, testável e
 
 ## SDD E Sincronização
 
-O padrao de desenvolvimento Specification-Driven Development (SDD) deste projeto esta documentado em [`docs/README.md`](docs/README.md). Consulte a documentacao referenciada ali antes de implementar uma funcionalidade.
+O padrão de desenvolvimento Specification-Driven Development (SDD) deste projeto está documentado em [`docs/README.md`](docs/README.md). Consulte a documentação referenciada ali antes de implementar uma funcionalidade.
 
 Seguir o fluxo:
 
@@ -46,7 +46,7 @@ Seguir o fluxo:
 spec -> plan -> tasks -> implementation -> tests -> update docs
 ```
 
-Sempre que alterar infraestrutura, dependencias, `Dockerfile`, `docker-compose.yml`, variaveis de ambiente ou comandos de build, teste e execucao:
+Sempre que alterar infraestrutura, dependências, `Dockerfile`, `docker-compose.yml`, variáveis de ambiente ou comandos de build, teste e execução:
 
 - Atualizar os arquivos `.md` correspondentes em `README.md`, `docs/`, planos, tarefas e ADRs aplicáveis.
 - Atualizar todos os exemplos de comandos afetados.

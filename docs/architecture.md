@@ -19,7 +19,7 @@ Backend.sln
     src/Backend.Api              -> composicao, endpoints e middleware
     src/Backend.Application      -> commands, queries e portas
     src/Backend.Domain           -> entidades, value objects e eventos
-    src/Backend.Infrastructure   -> MySQL, Elasticsearch, RabbitMQ, Redis e seguranca
+    src/Backend.Infrastructure   -> MySQL, Elasticsearch, RabbitMQ, Redis e segurança
     src/Backend.Contracts        -> requests e responses publicos
     tests/Backend.*.Tests        -> testes por responsabilidade
 ```
@@ -34,7 +34,7 @@ As dependências apontam para dentro: `Api` depende de `Application`, `Applicati
 - Usar `ProblemDetails` e `ValidationProblemDetails` para erros HTTP.
 - Usar `CancellationToken` em endpoints, handlers, repositorios e workers.
 - Usar `BackgroundService` para o processador da outbox.
-- Usar `WebApplicationFactory` nos testes HTTP de integracao.
+- Usar `WebApplicationFactory` nos testes HTTP de integração.
 - Usar PascalCase em arquivos e classes: `CreateAccessUserEndpoint.cs`, `CreateAccessUserCommand.cs` e `MySqlAccessUserWriteRepository.cs`.
 - Manter uma classe, record, interface ou responsabilidade principal por arquivo.
 

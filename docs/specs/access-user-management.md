@@ -51,7 +51,7 @@ A resposta HTTP nunca deve expor `password_hash`.
 `GET /api/v1/access-users/{id}`
 
 - Query: `GetAccessUser`.
-- Deve retornar `200 OK` com dados publicos do usuario.
+- Deve retornar `200 OK` com dados públicos do usuário.
 - Deve retornar `404 Not Found` quando o usuário não existir.
 - Não deve alterar estado nem criar evento.
 
@@ -69,7 +69,7 @@ A resposta HTTP nunca deve expor `password_hash`.
 
 `POST /api/v1/auth/login`
 
-- Command: `LoginAccessUser` ou caso de uso de autenticacao com leitura de credenciais.
+- Command: `LoginAccessUser` ou caso de uso de autenticação com leitura de credenciais.
 - Deve localizar o usuário por e-mail normalizado e verificar o hash da senha.
 - Deve rejeitar credenciais inválidas com resposta genérica, sem revelar se o e-mail existe.
 - Deve rejeitar usuário `disabled`.
@@ -167,7 +167,7 @@ O modelo de domínio do usuário de acesso deve seguir a estrutura abaixo:
 - `password_hash`: hash Argon2id, nunca armazenado em texto puro;
 - `status`: enum `active | disabled`;
 - `created_at` e `updated_at`: timestamps de auditoria;
-- `version`: numero de versao para concorrencia otimista.
+- `version`: número de versão para concorrência otimista.
 
 A tabela MySQL `access_users` deve seguir o esquema:
 

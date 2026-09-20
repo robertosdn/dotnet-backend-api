@@ -38,4 +38,4 @@ A API backend precisa evoluir para features de negócio reais, iniciando pela ge
 
 ## Fora Desta ADR
 
-Esta decisao nao escolhe ainda o formato de token de login, o algoritmo de hash de senha, o pacote NuGet de persistencia ou as regras de autorizacao administrativa. Essas decisoes devem ser registradas antes da implementacao dos endpoints.
+Esta decisão não escolhe ainda o formato de token de login, o algoritmo de hash de senha, o pacote NuGet de persistência ou as regras de autorização administrativa. Essas decisões devem ser registradas antes da implementação dos endpoints.

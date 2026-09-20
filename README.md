@@ -14,7 +14,7 @@ A API usa Minimal APIs, endpoints organizados por feature, PascalCase para arqui
 - **RabbitMQ 4.3.6**: transporte de eventos após o commit.
 - **Elasticsearch 9.5.4**: read model exclusivo das queries, inclusive consultas por id.
 - **Redis 8.8**: somente sessões, tokens revogados, rate limiting e dados temporários; não participa das queries de usuários.
-- **.NET 10 LTS**: runtime e SDK padrao da aplicacao.
+- **.NET 10 LTS**: runtime e SDK padrão da aplicação.
 - **Docker**: ambiente padrão para restore, build, testes e execução.
 
 O fluxo de desenvolvimento é:
@@ -46,9 +46,9 @@ docker compose --profile test build rest-test
 docker compose --profile test run --rm rest-test
 ```
 
-O servico `rest-test` executa a suite .NET isoladamente e nao inicia MySQL, RabbitMQ, Elasticsearch ou Redis. Os testes HTTP substituem as portas externas por doubles; os testes de infraestrutura devem usar o Compose completo.
+O serviço `rest-test` executa a suíte .NET isoladamente e não inicia MySQL, RabbitMQ, Elasticsearch ou Redis. Os testes HTTP substituem as portas externas por doubles; os testes de infraestrutura devem usar o Compose completo.
 
-A API fica disponivel em `https://localhost:8443` usando o certificado de desenvolvimento do ASP.NET Core. O endpoint HTTP `http://localhost:8080` permanece disponivel para redirecionar clientes para HTTPS quando executado com `dotnet run`.
+A API fica disponível em `https://localhost:8443` usando o certificado de desenvolvimento do ASP.NET Core. O endpoint HTTP `http://localhost:8080` permanece disponível para redirecionar clientes para HTTPS quando executado com `dotnet run`.
 
 ### HTTPS Local
 
@@ -77,24 +77,24 @@ O Compose publica `https://localhost:8443` e usa o certificado apenas dentro do 
 
 ### Bootstrap no Docker Compose
 
-- As migracoes SQL do MySQL devem ficar em `migrations/*.sql` e ser versionadas no repositorio.
-- O ambiente Docker Compose deve incluir inicializacao automatica para MySQL, RabbitMQ e Elasticsearch antes da API ficar pronta para uso.
+- As migrações SQL do MySQL devem ficar em `migrations/*.sql` e ser versionadas no repositório.
+- O ambiente Docker Compose deve incluir inicialização automática para MySQL, RabbitMQ e Elasticsearch antes de a API ficar pronta para uso.
 - O bootstrap do RabbitMQ deve criar exchange, fila e bindings basicos para o fluxo da outbox.
-- O bootstrap do Elasticsearch deve criar indices e mappings iniciais, como `access_users`, sem depender do app para criar o schema em runtime.
+- O bootstrap do Elasticsearch deve criar índices e mappings iniciais, como `access_users`, sem depender do app para criar o schema em runtime.
 - O bootstrap da stack deve garantir que `access_users`, `access_users_outbox`, fila de eventos e indice de consulta sejam criados automaticamente ao subir a infraestrutura.
-- A aplicacao nao deve depender de SQL gerado em runtime em handlers HTTP; a schema deve ser aplicada por migracao reproducivel.
+- A aplicação não deve depender de SQL gerado em runtime em handlers HTTP; o schema deve ser aplicado por migração reproduzível.
 
 ## Desenvolvimento Orientado Por Especificação
 
 Antes de implementar uma funcionalidade:
 
-1. Atualize ou crie a especificacao em `docs/specs/`.
+1. Atualize ou crie a especificação em `docs/specs/`.
 2. Registre decisoes tecnicas em `docs/decisions/`.
 3. Atualize o plano em `docs/plans/`.
 4. Derive tarefas em `docs/tasks/`.
 5. Implemente em modulos separados por responsabilidade.
-6. Adicione testes unitarios e de integracao.
-7. Atualize a documentacao e execute as validacoes Docker.
+6. Adicione testes unitários e de integração.
+7. Atualize a documentação e execute as validações Docker.
 
 ## Documentação
 

@@ -7,7 +7,7 @@ Manter uma API backend completa em C# sobre .NET 10 LTS, testável e preparada p
 ## Princípios Obrigatórios
 
 1. **C#/.NET idiomático**: preferir tipos fortes, nullable reference types, erros explícitos, async/await e responsabilidades pequenas.
-2. **CQRS**: separar operacoes que alteram estado (commands) de operacoes que apenas consultam estado (queries).
+2. **CQRS**: separar operações que alteram estado (commands) de operações que apenas consultam estado (queries).
 3. **Transactional Outbox**: quando uma operação alterar estado e gerar evento de integração, persistir ambos na mesma transação atômica antes de publicar o evento.
 4. **Idempotência**: comandos e o processamento da outbox devem tolerar retries sem duplicar efeitos.
 5. **Testes segmentados**: toda funcionalidade nova ou alterada deve ter testes unitários e, quando aplicável, testes de integração em classes separadas nos projetos `*.Tests`; não concentrar a suíte em uma classe monolítica.
