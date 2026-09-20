@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Substituir os endpoints de demonstracao `hello` e `echo` pelas primeiras features reais do backend, iniciando pela gestao de usuarios de acesso e mantendo CQRS, Transactional Outbox, seguranca de credenciais e testes automatizados.
+Implementar as primeiras features reais do backend, iniciando pela gestao de usuarios de acesso e mantendo CQRS, Transactional Outbox, seguranca de credenciais e testes automatizados.
 
 ## Contratos E Projetos Previstos
 
@@ -84,13 +84,12 @@ Os testes tambem devem seguir a separacao modular. Os projetos `Backend.Api.Unit
 8. Implementar o projetor RabbitMQ -> Elasticsearch para materializar o read model dos usuarios sem consultas ao MySQL em queries normais.
 9. Implementar reindexacao de emergencia do Elasticsearch a partir do MySQL em batch, mantendo o caminho normal das queries somente no Elasticsearch.
 10. Atualizar Docker Compose com banco e demais dependencias necessarias, aplicar migracoes SQL em bootstrap e validar os endpoints contra a infraestrutura real pelo perfil de testes do .NET.
-11. Remover `hello` e `echo` do router e retirar seus testes somente apos os endpoints reais estarem cobertos.
+11. Consolidar o router somente com endpoints de negocio apos a cobertura dos casos de uso reais.
 
 Em cada etapa de implementacao, a revisao deve verificar a arvore de arquivos, os limites de dependencia entre projetos/namespaces, a infraestrutura efetivamente usada pelo runtime e a existencia de testes da camada alterada nos projetos `*.Tests`. A tarefa so pode ser marcada como concluida quando essa verificacao passar; mocks em memoria nao substituem MySQL, RabbitMQ ou Elasticsearch nos fluxos de integracao.
 
 ## Nao Escopo
 
-- Nao manter `hello` e `echo` como parte do contrato final da API.
 - Nao implementar autenticacao administrativa sem definir autorizacao minima.
 - Nao escolher banco, formato de credencial ou broker sem uma decisao registrada.
 - Nao publicar eventos diretamente a partir de handlers HTTP.

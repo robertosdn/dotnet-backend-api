@@ -2,17 +2,6 @@
 
 API backend completa em C# com ASP.NET Core sobre .NET 10 LTS. Gestao de usuarios de acesso e uma das features planejadas do backend.
 
-## Estado Do Projeto
-
-Atualmente existem endpoints temporarios para validar o servidor:
-
-- `GET /hello`
-- `GET /hello/`
-- `GET /hello/{name}`
-- `POST /echo`
-
-Eles serao removidos quando as primeiras features reais do backend estiverem implementadas e cobertas por testes.
-
 ## Arquitetura
 
 A solucao usa Clean Architecture + Vertical Slice em .NET 10 LTS. Os projetos sao `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure` e `Backend.Contracts`; `Program.cs` e o composition root e as dependencias sao registradas por IoC via `IServiceCollection`.

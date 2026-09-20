@@ -4,7 +4,7 @@
 
 A aplicacao e um servico HTTP em C# usando ASP.NET Core sobre .NET 10 LTS. O ponto de entrada esta em `src/Backend.Api/Program.cs` e a composicao das rotas e registrada na camada HTTP.
 
-As rotas atuais `hello` e `echo` sao endpoints de demonstracao e estao marcadas para retirada em `docs/specs/hello-api.md`. A gestao de usuarios de acesso e a primeira feature de negocio documentada em `docs/specs/access-user-management.md`, dentro do backend completo.
+A gestao de usuarios de acesso e a primeira feature de negocio documentada em `docs/specs/access-user-management.md`, dentro do backend completo.
 
 O Dockerfile possui etapas `test`, `build`, `publish` e `production`, que executam `dotnet test`, `dotnet publish` e hospedam a aplicacao. O Docker Compose expoe o servico em `8080` e possui um perfil `test` para a imagem de testes.
 

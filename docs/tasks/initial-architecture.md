@@ -49,7 +49,7 @@
 - [ ] Adicionar testes de queries por id, filtros, paginacao e busca no Elasticsearch.
 - [ ] Adicionar teste de falha do Elasticsearch sem fallback para MySQL.
 - [ ] Executar os testes de persistencia, outbox e endpoints contra MySQL, RabbitMQ, Elasticsearch e Redis reais via Docker Compose, incluindo `dotnet format --verify-no-changes`, `dotnet test` e `dotnet build --warnaserror`.
-- [ ] Remover rotas e testes de `hello` e `echo` apos a nova API estar validada.
+- [x] Remover rotas e testes das funcionalidades legadas de bootstrap apos a nova API estar validada.
 - [ ] Atualizar a especificacao, o plano e esta lista com os resultados.
 - [ ] Publicar OpenAPI dos endpoints e validar respostas de erro com `ProblemDetails`.
 
