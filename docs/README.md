@@ -11,7 +11,26 @@ This folder uses Specification-Driven Development (SDD).
 - `plans/`: strategy to implement a feature or evolution.
 - `tasks/`: executable checklist derived from the plan.
 
-## .NET Structure
+## SDD Workflow
+
+The workflow follows Specification-Driven Development (SDD):
+
+```text
+spec (docs/specs/) → plan (docs/plans/) → tasks (docs/tasks/) → implement → test → update docs
+```
+
+When changing: infra, deps, Dockerfile, docker-compose.yml, env vars, build/test/run commands → update all affected `.md` files (README, docs/, plans, tasks, ADRs).
+
+### Task Completion Tracking
+
+Tasks in `docs/tasks/` use checkbox format. Mark completed tasks with `[x]`:
+
+```markdown
+- [x] Implement `GET /api/v1/access-users/{id}`.
+- [ ] Implement `GET /api/v1/access-users` with pagination.
+```
+
+This provides clear visual progress tracking and ensures documentation stays synchronized with implementation.
 
 The solution uses .NET 10 LTS, C#, and ASP.NET Core Minimal APIs:
 
