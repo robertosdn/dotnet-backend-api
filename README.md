@@ -48,7 +48,32 @@ docker compose --profile test run --rm rest-test
 
 O servico `rest-test` executa a suite .NET isoladamente e nao inicia MySQL, RabbitMQ, Elasticsearch ou Redis. Os testes HTTP substituem as portas externas por doubles; os testes de infraestrutura devem usar o Compose completo.
 
-A API atual fica disponivel em `http://localhost:8080`.
+A API fica disponivel em `https://localhost:8443` usando o certificado de desenvolvimento do ASP.NET Core. O endpoint HTTP `http://localhost:8080` permanece disponivel para redirecionar clientes para HTTPS quando executado com `dotnet run`.
+
+### HTTPS Local
+
+Confiar no certificado de desenvolvimento uma vez no host:
+
+```bash
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+```
+
+Executar a API localmente:
+
+```bash
+dotnet run --project src/Backend.Api/Backend.Api.csproj
+```
+
+Para executar pelo Docker Compose, exportar o certificado para o caminho montado pelo serviço:
+
+```bash
+mkdir -p "$HOME/.aspnet/https"
+dotnet dev-certs https -ep "$HOME/.aspnet/https/backend-api.pfx" -p local-development-only
+docker compose up --build rest-server
+```
+
+O Compose publica `https://localhost:8443` e usa o certificado apenas dentro do ambiente local. Como o certificado de desenvolvimento não é uma autoridade pública, clientes de linha de comando podem precisar de `curl -k` até que a cadeia local seja confiada.
 
 ### Bootstrap no Docker Compose
 

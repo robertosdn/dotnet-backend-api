@@ -35,6 +35,9 @@ artifacts/package/
 # Logs and runtime files
 *.log
 *.pid
+*.pfx
+*.key
+*.crt
 
 # Editor and OS metadata
 .vscode/settings.json
