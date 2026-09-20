@@ -1,0 +1,23 @@
+{
+  "rabbit_version": "4.3.6",
+  "users": [
+    {"name": "guest", "password": "guest", "tags": "administrator"}
+  ],
+  "vhosts": [{"name": "/"}],
+  "permissions": [{
+    "user": "guest",
+    "vhost": "/",
+    "configure": ".*",
+    "write": ".*",
+    "read": ".*"
+  }],
+  "queues": [
+    {"name": "access_users.events.queue", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}}
+  ],
+  "exchanges": [
+    {"name": "access_users.events", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false, "internal": false, "arguments": {}}
+  ],
+  "bindings": [
+    {"source": "access_users.events", "vhost": "/", "destination": "access_users.events.queue", "destination_type": "queue", "routing_key": "access_users.event", "arguments": {}}
+  ]
+}

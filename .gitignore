@@ -1,0 +1,50 @@
+# .NET build artifacts
+[Bb]in/
+[Oo]bj/
+artifacts/
+
+# Visual Studio and local IDE state
+.vs/
+*.user
+*.userosscache
+*.suo
+*.rsuser
+
+# Test results and coverage
+TestResults/
+*.trx
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+BenchmarkDotNet.Artifacts/
+
+# NuGet and local package artifacts
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/package/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and runtime files
+*.log
+*.pid
+
+# Editor and OS metadata
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Generated documentation and analyzers
+*.Generated.cs
+*.generated.cs
+roslyn-analyzers/

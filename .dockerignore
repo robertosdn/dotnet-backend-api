@@ -1,0 +1,39 @@
+# .NET build artifacts from the host
+**/bin/
+**/obj/
+artifacts/
+TestResults/
+coverage/
+BenchmarkDotNet.Artifacts/
+
+# Local package and generated artifacts
+packages/
+*.nupkg
+*.snupkg
+
+# Git, IDE and local tooling
+.git/
+.github/
+.vscode/
+.idea/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.rsuser
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+*.pid
+.DS_Store
+Thumbs.db
+
+# Documentation is not required by the Docker build context
+README.md
+AGENTS.md
+docs/

@@ -1,0 +1,104 @@
+# REST API .NET
+
+API backend completa em C# com ASP.NET Core sobre .NET 10 LTS. Gestao de usuarios de acesso e uma das features planejadas do backend.
+
+## Estado Do Projeto
+
+Atualmente existem endpoints temporarios para validar o servidor:
+
+- `GET /hello`
+- `GET /hello/`
+- `GET /hello/{name}`
+- `POST /echo`
+
+Eles serao removidos quando as primeiras features reais do backend estiverem implementadas e cobertas por testes.
+
+## Arquitetura
+
+A solucao usa Clean Architecture + Vertical Slice em .NET 10 LTS. Os projetos sao `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure` e `Backend.Contracts`; `Program.cs` e o composition root e as dependencias sao registradas por IoC via `IServiceCollection`.
+
+A API usa Minimal APIs, endpoints organizados por feature, PascalCase para arquivos/classe, versionamento `/api/v1`, OpenAPI e `ProblemDetails` para respostas de erro.
+
+- **CQRS**: commands alteram o write model; queries consultam o read model.
+- **MySQL 9.7.2 / InnoDB**: write model e fonte de verdade.
+- **Transactional Outbox**: uma outbox propria para cada tabela de dominio que produzir eventos.
+- **RabbitMQ 4.3.6**: transporte de eventos apos o commit.
+- **Elasticsearch 9.5.4**: read model exclusivo das queries, inclusive consultas por id.
+- **Redis 8.8**: somente sessoes, tokens revogados, rate limiting e dados temporarios; nao participa das queries de usuarios.
+- **.NET 10 LTS**: runtime e SDK padrao da aplicacao.
+- **Docker**: ambiente padrao para restore, build, testes e execucao.
+
+O fluxo de desenvolvimento e:
+
+```text
+spec -> plan -> tasks -> implementation -> tests -> update docs
+```
+
+## Executar Com Docker
+
+A stack completa do backend deve subir via Docker Compose, incluindo os servicos de banco, fila, busca, cache, configuracoes de bootstrap e os scripts de inicializacao necessarios para que o ambiente local fique funcional desde o primeiro `up`.
+
+Subir toda a stack de desenvolvimento:
+
+```bash
+docker compose up --build
+```
+
+Subir apenas o servico HTTP atual:
+
+```bash
+docker compose up --build rest-server
+```
+
+Executar os testes no estagio Docker de testes:
+
+```bash
+docker compose --profile test build rest-test
+docker compose --profile test run --rm rest-test
+```
+
+O servico `rest-test` executa a suite .NET isoladamente e nao inicia MySQL, RabbitMQ, Elasticsearch ou Redis. Os testes HTTP substituem as portas externas por doubles; os testes de infraestrutura devem usar o Compose completo.
+
+A API atual fica disponivel em `http://localhost:8080`.
+
+### Bootstrap no Docker Compose
+
+- As migracoes SQL do MySQL devem ficar em `migrations/*.sql` e ser versionadas no repositorio.
+- O ambiente Docker Compose deve incluir inicializacao automatica para MySQL, RabbitMQ e Elasticsearch antes da API ficar pronta para uso.
+- O bootstrap do RabbitMQ deve criar exchange, fila e bindings basicos para o fluxo da outbox.
+- O bootstrap do Elasticsearch deve criar indices e mappings iniciais, como `access_users`, sem depender do app para criar o schema em runtime.
+- O bootstrap da stack deve garantir que `access_users`, `access_users_outbox`, fila de eventos e indice de consulta sejam criados automaticamente ao subir a infraestrutura.
+- A aplicacao nao deve depender de SQL gerado em runtime em handlers HTTP; a schema deve ser aplicada por migracao reproducivel.
+
+## Desenvolvimento Orientado Por Especificacao
+
+Antes de implementar uma funcionalidade:
+
+1. Atualize ou crie a especificacao em `docs/specs/`.
+2. Registre decisoes tecnicas em `docs/decisions/`.
+3. Atualize o plano em `docs/plans/`.
+4. Derive tarefas em `docs/tasks/`.
+5. Implemente em modulos separados por responsabilidade.
+6. Adicione testes unitarios e de integracao.
+7. Atualize a documentacao e execute as validacoes Docker.
+
+## Documentacao
+
+- [`AGENTS.md`](AGENTS.md): instrucoes compartilhadas para pessoas e agentes de qualquer ferramenta.
+- [`docs/README.md`](docs/README.md): indice da documentacao SDD.
+- [`docs/constitution.md`](docs/constitution.md): principios e Definition of Done.
+- [`docs/architecture.md`](docs/architecture.md): arquitetura e limites entre write/read model.
+- [`docs/specs/access-user-management.md`](docs/specs/access-user-management.md): especificacao da API de usuarios.
+- [`docs/infrastructure/`](docs/infrastructure/): MySQL, RabbitMQ, Elasticsearch e Redis.
+- [`docs/decisions/`](docs/decisions/): ADRs e consequencias das escolhas.
+- [`docs/plans/`](docs/plans/): planos de implementacao.
+- [`docs/tasks/`](docs/tasks/): checklists executaveis.
+
+## Regras Para Desenvolvimento
+
+- Manter commands, queries, dominio, persistencia, handlers e projetores em modulos separados.
+- Nao consultar MySQL no caminho normal das queries; usar Elasticsearch.
+- Nao publicar eventos antes do commit da transacao.
+- Nunca armazenar ou expor senhas em texto puro.
+- Criar testes para cada comportamento novo ou alterado.
+- Revisar nullability, concorrencia, ciclos de vida do DI, cancelamento e possiveis vazamentos de recursos.
