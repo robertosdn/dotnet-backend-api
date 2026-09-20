@@ -1,65 +1,119 @@
-# Project Instructions
+# AGENTS.md — rest-api-dotnet
 
-These instructions apply to people and any development agent used in this repository.
+## Quick Reference
 
-## Objective
-
-Develop a complete backend API in .NET 10 LTS with C#, modular, testable, and prepared to evolve with multiple business features, including access user management.
-
-## Mandatory Architecture
-
-- Use CQRS: commands alter the write model; queries only consult the read model.
-- Use MySQL with InnoDB and `utf8mb4` as write model and source of truth.
-- Use Transactional Outbox: each domain table that produces events must have its own outbox, written atomically with the domain change.
-- Use RabbitMQ to transport events after commit.
-- Use Elasticsearch as the exclusive read model for queries, including by-id lookups. Queries must not query MySQL as a fallback.
-- Use Redis only for sessions, revoked tokens, rate limiting, and temporary data. Redis does not participate in the user read model.
-
-## Modularity
-
-- Use Clean Architecture + Vertical Slice: separate `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure`, and `Backend.Contracts`.
-- Separate domain, commands, queries, HTTP endpoints, persistence, outbox, projectors, and infrastructure into their own PascalCase classes and files.
-- Apply SOLID pragmatically and use IoC via `IServiceCollection`; `Program.cs` must be only the composition root.
-- Keep methods small, responsibilities clear, and components reusable.
-- Avoid monolithic files and artificial abstractions.
-
-## Security And Memory
-
-- Never store or expose passwords in plain text.
-- Use nullable reference types, `Result`/`ProblemDetails`, `async`/`await`, `CancellationToken`, and `IDisposable`/`IAsyncDisposable` to handle states and resources.
-- Review concurrency, tasks, channels, locks, connections, cancellation tokens, and DI scopes.
-- Look for incorrect nullability, deadlocks, logical data races, connection leaks, and unobserved tasks.
-
-## Docker And Validation
-
-- Use Docker Compose or Dockerfile stages to restore, build, test, and run .NET.
-- Run applicable validations inside Docker, including `dotnet format --verify-no-changes`, `dotnet test`, and `dotnet build --warnaserror`.
-- Do not consider a change complete without reporting the commands executed and their results.
-
-## SDD And Synchronization
-
-The Specification-Driven Development (SDD) pattern for this project is documented in [`docs/README.md`](docs/README.md). Consult the referenced documentation before implementing a feature.
-
-Follow the flow:
-
-```text
-spec -> plan -> tasks -> implementation -> tests -> update docs
-```
-
-Whenever you change infrastructure, dependencies, `Dockerfile`, `docker-compose.yml`, environment variables, or build, test, and run commands:
-
-- Update the corresponding `.md` files in `README.md`, `docs/`, plans, tasks, and applicable ADRs.
-- Update all affected command examples.
-- Update health checks, ports, volumes, and documented configurations when they change.
-- Keep code, operational configuration, commands, and documentation synchronized.
-
-## Changes
-
-- Read the specification, plan, tasks, and related tests before editing.
-- Make the smallest change consistent with the existing architecture.
-- Add or update unit and integration tests for each changed behavior.
-- Do not discard pre-existing changes or modify files outside scope without necessity.
+**Stack**: .NET 10 LTS, C#, ASP.NET Core Minimal APIs, MySQL 9.7.2 (InnoDB, utf8mb4), RabbitMQ 4.3.6, Elasticsearch 9.5.4, Redis 8.8  
+**Architecture**: Clean Architecture + Vertical Slice (Api, Application, Domain, Infrastructure, Contracts)  
+**Pattern**: CQRS + Transactional Outbox; Elasticsearch is exclusive read model (no MySQL fallback)
 
 ---
 
-**Language Rule**: All code, documentation, specifications, plans, tasks, ADRs, and comments must be written in English. This includes C# code, SQL, configuration files, and all `.md` files.
+## Essential Commands
+
+### Run Full Stack (dev)
+```bash
+docker compose up --build
+```
+
+### Run API Only (requires infra running)
+```bash
+docker compose up --build rest-server
+```
+
+### Run Tests in Docker
+```bash
+docker compose --profile test build rest-test
+docker compose --profile test run --rm rest-test
+```
+
+### Local Dev (outside Docker)
+```bash
+# Trust cert once
+dotnet dev-certs https --clean && dotnet dev-certs https --trust
+
+# Run API
+dotnet run --project src/Backend.Api/Backend.Api.csproj
+```
+
+### Format / Build / Test Locally
+```bash
+dotnet format --verify-no-changes
+dotnet build --warnaserror
+dotnet test
+```
+
+---
+
+## Architecture Rules (Non-Negotiable)
+
+- **Commands** → write MySQL + outbox in **same transaction**
+- **Queries** → read **only Elasticsearch** (never MySQL fallback)
+- **Outbox**: one table per domain aggregate; processor publishes to RabbitMQ after commit
+- **Redis**: sessions, revoked tokens, rate limiting only — **no user read model**
+- **Passwords**: Argon2id only, never plain text
+- **Program.cs** = composition root only; no business logic
+- **Vertical Slice**: endpoints, commands, queries, domain, persistence, outbox in separate PascalCase files per feature
+
+---
+
+## Project Structure
+
+```
+Backend.sln
+src/
+  Backend.Api/              # Minimal APIs, endpoint groups, middleware
+  Backend.Application/      # Commands, Queries, Abstractions (ports)
+  Backend.Domain/           # Entities, VOs, Events (no external deps)
+  Backend.Infrastructure/   # MySQL, Elasticsearch, RabbitMQ, Redis, Security
+  Backend.Contracts/        # Public request/response DTOs
+tests/
+  Backend.Application.Tests/     # Unit tests (xUnit)
+  Backend.Api.IntegrationTests/  # HTTP tests (WebApplicationFactory)
+```
+
+---
+
+## SDD Workflow (Required)
+
+```
+spec (docs/specs/) → plan (docs/plans/) → tasks (docs/tasks/) → implement → test → update docs
+```
+
+When changing: infra, deps, Dockerfile, docker-compose.yml, env vars, build/test/run commands → update all affected `.md` files (README, docs/, plans, tasks, ADRs).
+
+---
+
+## Key Constraints
+
+- `Nullable` enabled, `TreatWarningsAsErrors` true (Directory.Build.props)
+- Use `CancellationToken` everywhere I/O occurs
+- Use `Result`/`ProblemDetails` for errors; no exceptions for control flow
+- One class/responsibility per file (PascalCase)
+- No artificial abstractions: interfaces = ports or real variations
+- Migrations in `migrations/*.sql` (versioned, run via Docker entrypoint)
+- Elasticsearch index bootstrap via `elasticsearch/init-access-users-index.sh` (runs before API)
+
+---
+
+## Test Notes
+
+- Unit tests: `Backend.Application.Tests` (no external deps)
+- Integration tests: `Backend.Api.IntegrationTests` (WebApplicationFactory; HTTP only)
+- Infrastructure tests require full Compose stack
+- Run single test: `dotnet test --filter "FullyQualifiedName~CreateAccessUserHandlerTests"`
+
+---
+
+## Environment Variables (Docker)
+
+| Service | Key Variables |
+|---------|---------------|
+| MySQL | `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD` |
+| RabbitMQ | `RABBITMQ_DEFAULT_USER`, `RABBITMQ_DEFAULT_PASS` |
+| API | `ASPNETCORE_URLS`, `ASPNETCORE_Kestrel__Certificates__Default__Path`, `ASPNETCORE_Kestrel__Certificates__Default__Password` |
+
+---
+
+## Language Rule
+
+All code, docs, specs, plans, tasks, ADRs, comments = **English only** (C#, SQL, config, .md).

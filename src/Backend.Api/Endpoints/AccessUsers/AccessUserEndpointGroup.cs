@@ -8,5 +8,6 @@ public static class AccessUserEndpointGroup
             .WithTags("Access Users");
 
         CreateAccessUserEndpoint.Map(group);
+        UpdateAccessUserEndpoint.Map(group);
     }
 }

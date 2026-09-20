@@ -78,6 +78,21 @@ public sealed class CreateAccessUserHandlerTests
             Event = createdEvent;
             return Task.FromResult(SaveError);
         }
+
+        public Task<SaveAccessUserError> UpdateAsync(
+            AccessUser currentUser,
+            AccessUser updatedUser,
+            AccessUserUpdatedEvent? updatedEvent,
+            long expectedVersion,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(SaveAccessUserError.Storage);
+        }
+
+        public Task<AccessUser?> FindByIdAsync(Guid id, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<AccessUser?>(null);
+        }
     }
 
     private sealed class FakePasswordHasher : IPasswordHasher

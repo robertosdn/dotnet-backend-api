@@ -49,6 +49,16 @@ public sealed class CreateAccessUserEndpointTests : IClassFixture<ApiFactory>
             AccessUser user,
             AccessUserCreatedEvent createdEvent,
             CancellationToken cancellationToken) => Task.FromResult(SaveAccessUserError.None);
+
+        public Task<SaveAccessUserError> UpdateAsync(
+            AccessUser currentUser,
+            AccessUser updatedUser,
+            AccessUserUpdatedEvent? updatedEvent,
+            long expectedVersion,
+            CancellationToken cancellationToken) => Task.FromResult(SaveAccessUserError.Storage);
+
+        public Task<AccessUser?> FindByIdAsync(Guid id, CancellationToken cancellationToken) =>
+            Task.FromResult<AccessUser?>(null);
     }
 
     internal sealed class FakePasswordHasher : IPasswordHasher

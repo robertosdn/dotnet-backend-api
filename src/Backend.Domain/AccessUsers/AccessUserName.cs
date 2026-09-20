@@ -6,7 +6,7 @@ public sealed record AccessUserName
 {
     public string Value { get; }
 
-    private AccessUserName(string value) => Value = value;
+    public AccessUserName(string value) => Value = value;
 
     public static AccessUserName Parse(string? value)
     {
