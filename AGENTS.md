@@ -1,4 +1,4 @@
-# AGENTS.md — rest-api-dotnet
+# AGENTS.md — backend-api-dotnet
 
 ## Quick Reference
 
@@ -19,14 +19,14 @@ docker compose up --build
 ### Run API Only (requires infra running)
 
 ```bash
-docker compose up --build rest-server
+docker compose up --build backend-server
 ```
 
 ### Run Tests in Docker
 
 ```bash
-docker compose --profile test build rest-test
-docker compose --profile test run --rm rest-test
+docker compose --profile test build backend-test
+docker compose --profile test run --rm backend-test
 ```
 
 ### Local Dev (outside Docker)
@@ -46,6 +46,10 @@ dotnet format --verify-no-changes
 dotnet build --warnaserror
 dotnet test
 ```
+
+Unused `using` directives fail the build (`IDE0005`/`CS8019` as error). Remove them manually
+or run `dotnet format` before committing. `ImplicitUsings` is enabled, so do not add
+explicit `using` for namespaces already covered implicitly.
 
 ---
 
@@ -102,6 +106,7 @@ This provides clear visual progress tracking and ensures documentation stays syn
 ## Key Constraints
 
 - `Nullable` enabled, `TreatWarningsAsErrors` true (Directory.Build.props)
+- `EnforceCodeStyleInBuild` true with `IDE0005`/`CS8019` as error (`.editorconfig`): **no unused `using` directives**
 - Use `CancellationToken` everywhere I/O occurs
 - Use `Result`/`ProblemDetails` for errors; no exceptions for control flow
 - One class/responsibility per file (PascalCase)
@@ -126,7 +131,7 @@ This provides clear visual progress tracking and ensures documentation stays syn
 | --------- | --------------- |
 | MySQL | `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD` |
 | RabbitMQ | `RABBITMQ_DEFAULT_USER`, `RABBITMQ_DEFAULT_PASS` |
-| API | `ASPNETCORE_URLS`, `ASPNETCORE_Kestrel__Certificates__Default__Path`, `ASPNETCORE_Kestrel__Certificates__Default__Password` |
+| API | `ASPNETCORE_URLS` |
 
 ---
 

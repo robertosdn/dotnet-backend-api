@@ -6,7 +6,6 @@ using Backend.Infrastructure.Security;
 using Elastic.Clients.Elasticsearch;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using MySqlConnector;
 
 namespace Backend.Infrastructure.DependencyInjection;

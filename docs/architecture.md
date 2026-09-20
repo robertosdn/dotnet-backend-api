@@ -37,6 +37,7 @@ Dependencies point inward: `Api` depends on `Application`, `Application` depends
 - Use `WebApplicationFactory` in HTTP integration tests.
 - Use PascalCase for files and classes: `CreateAccessUserEndpoint.cs`, `CreateAccessUserCommand.cs`, and `MySqlAccessUserWriteRepository.cs`.
 - Keep one class, record, interface, or main responsibility per file.
+- Keep no unused `using` directives: `ImplicitUsings` is enabled, self-namespace `using` is forbidden, and `IDE0005`/`CS8019` are errors enforced by `.editorconfig` plus `EnforceCodeStyleInBuild`. Run `dotnet format` and `dotnet build --warnaserror` to verify.
 
 The public API format remains versioned and resource-oriented:
 

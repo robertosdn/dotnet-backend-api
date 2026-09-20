@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using Backend.Application.Abstractions.Persistence;
 using Backend.Application.Abstractions.Security;
 using Backend.Domain.AccessUsers;
-using Backend.Contracts.AccessUsers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

@@ -1,5 +1,4 @@
 using Backend.Application.Abstractions.Persistence;
-using Backend.Application.AccessUsers.Queries.GetAccessUserById;
 
 namespace Backend.Application.AccessUsers.Queries.GetAccessUserById;
 

@@ -83,19 +83,15 @@ services:
       retries: 10
       start_period: 5s
 
-  rest-server:
+  backend-server:
     build:
       context: .
       target: production
     ports:
       - "8080:8080"
-      - "8443:8443"
     environment:
-      ASPNETCORE_URLS: "https://+:8443"
-      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/backend-api.pfx"
-      ASPNETCORE_Kestrel__Certificates__Default__Password: "local-development-only"
-    volumes:
-      - ${USERPROFILE:-${HOME}}/.aspnet/https:/https:ro
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: "Development"
     restart: unless-stopped
     container_name: backend-api
     depends_on:
@@ -108,13 +104,13 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fk", "https://localhost:8443/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 5s
 
-  rest-test:
+  backend-test:
     build:
       context: .
       target: test

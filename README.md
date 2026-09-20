@@ -36,44 +36,27 @@ docker compose up --build
 Start only the current HTTP service:
 
 ```bash
-docker compose up --build rest-server
+docker compose up --build backend-server
 ```
 
 Run tests in the Docker test stage:
 
 ```bash
-docker compose --profile test build rest-test
-docker compose --profile test run --rm rest-test
+docker compose --profile test build backend-test
+docker compose --profile test run --rm backend-test
 ```
 
-The `rest-test` service runs the .NET test suite in isolation and does not start MySQL, RabbitMQ, Elasticsearch, or Redis. HTTP tests replace external ports with doubles; infrastructure tests must use the full Compose stack.
+The `backend-test` service runs the .NET test suite in isolation and does not start MySQL, RabbitMQ, Elasticsearch, or Redis. HTTP tests replace external ports with doubles; infrastructure tests must use the full Compose stack.
 
-The API is available at `https://localhost:8443` using the ASP.NET Core development certificate. The HTTP endpoint `http://localhost:8080` remains available to redirect clients to HTTPS when run with `dotnet run`.
+The API is available at `http://localhost:8080`.
 
-### Local HTTPS
-
-Trust the development certificate once on the host:
-
-```bash
-dotnet dev-certs https --clean
-dotnet dev-certs https --trust
-```
+### Local Development
 
 Run the API locally:
 
 ```bash
 dotnet run --project src/Backend.Api/Backend.Api.csproj
 ```
-
-To run via Docker Compose, export the certificate to the path mounted by the service:
-
-```bash
-mkdir -p "$HOME/.aspnet/https"
-dotnet dev-certs https -ep "$HOME/.aspnet/https/backend-api.pfx" -p local-development-only
-docker compose up --build rest-server
-```
-
-Compose publishes `https://localhost:8443` and uses the certificate only within the local environment. Since the development certificate is not a public authority, command-line clients may need `curl -k` until the local chain is trusted.
 
 ### Bootstrap in Docker Compose
 
@@ -116,6 +99,7 @@ Before implementing a feature:
 - Never store or expose passwords in plain text.
 - Create tests for each new or changed behavior.
 - Review nullability, concurrency, DI lifecycles, cancellation, and possible resource leaks.
+- Keep every `.cs` file free of unused `using` directives (`IDE0005`/`CS8019` fail the build); rely on `ImplicitUsings` and run `dotnet format` before committing.
 
 ---
 

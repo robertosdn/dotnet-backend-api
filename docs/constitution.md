@@ -17,6 +17,7 @@ Maintain a complete backend API in C# on .NET 10 LTS, testable, and prepared to 
 9. **Pragmatic SOLID**: apply single responsibility, dependency inversion, and interfaces only when they represent ports, policies, or real variations.
 10. **Explicit IoC**: register dependencies via `IServiceCollection` extensions; avoid service locator, global state, and concrete dependencies in use cases.
 11. **Idiomatic .NET API**: use Minimal APIs, versioned groups in `/api/v1`, `ProblemDetails`, OpenAPI, and `CancellationToken` in I/O operations.
+12. **Clean Usings**: no unused `using` directives in any `.cs` file; rely on `ImplicitUsings` and remove self-namespace or unreferenced imports.
 
 ## Definition Of Done
 
@@ -29,6 +30,7 @@ A change is only complete when:
 - relevant unit and integration tests have been added or updated;
 - tests are segmented by layer in `*.Tests` projects, without a monolithic test class;
 - `dotnet format --verify-no-changes`, `dotnet test`, and `dotnet build --warnaserror` have been executed in Docker when supported by the environment;
+- the build reports zero `IDE0005`/`CS8019` violations (no unused `using` directives);
 - risks, limitations, and executed commands have been recorded in the change summary.
 
 ---

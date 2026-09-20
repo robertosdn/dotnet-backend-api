@@ -10,5 +10,6 @@ public static class AccessUserEndpointGroup
         CreateAccessUserEndpoint.Map(group);
         UpdateAccessUserEndpoint.Map(group);
         GetAccessUserByIdEndpoint.Map(group);
+        ListAccessUsersEndpoint.Map(group);
     }
 }

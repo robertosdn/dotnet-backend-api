@@ -32,7 +32,7 @@
 - [x] Implement `POST /api/v1/access-users` following `Endpoint -> Command -> domain -> MySQL/outbox repository`, with email, name, and password validation; unique email, Argon2id hash, transactional outbox event, and response without `password_hash`.
 - [x] Implement `PATCH /api/v1/access-users/{id}`.
 - [x] Implement `GET /api/v1/access-users/{id}`.
-- [ ] Implement `GET /api/v1/access-users` with pagination.
+- [x] Implement `GET /api/v1/access-users` with pagination.
 - [ ] Implement `POST /api/v1/auth/login`.
 - [ ] Ensure responses and logs never expose password, hash, or token.
 

@@ -1,6 +1,5 @@
 using Backend.Application.Auth.Commands.Login;
 using Backend.Contracts.Auth;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Api.Endpoints.Auth;
 
