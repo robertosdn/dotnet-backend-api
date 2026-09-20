@@ -1,23 +1,23 @@
 # REST API .NET
 
-API backend completa em C# com ASP.NET Core sobre .NET 10 LTS. Gestao de usuarios de acesso e uma das features planejadas do backend.
+API backend completa em C# com ASP.NET Core sobre .NET 10 LTS. Gestão de usuários de acesso é uma das features planejadas do backend.
 
 ## Arquitetura
 
-A solucao usa Clean Architecture + Vertical Slice em .NET 10 LTS. Os projetos sao `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure` e `Backend.Contracts`; `Program.cs` e o composition root e as dependencias sao registradas por IoC via `IServiceCollection`.
+A solução usa Clean Architecture + Vertical Slice em .NET 10 LTS. Os projetos são `Backend.Api`, `Backend.Application`, `Backend.Domain`, `Backend.Infrastructure` e `Backend.Contracts`; `Program.cs` é o composition root e as dependências são registradas por IoC via `IServiceCollection`.
 
-A API usa Minimal APIs, endpoints organizados por feature, PascalCase para arquivos/classe, versionamento `/api/v1`, OpenAPI e `ProblemDetails` para respostas de erro.
+A API usa Minimal APIs, endpoints organizados por feature, PascalCase para arquivos/classes, versionamento `/api/v1`, OpenAPI e `ProblemDetails` para respostas de erro.
 
 - **CQRS**: commands alteram o write model; queries consultam o read model.
 - **MySQL 9.7.2 / InnoDB**: write model e fonte de verdade.
-- **Transactional Outbox**: uma outbox propria para cada tabela de dominio que produzir eventos.
-- **RabbitMQ 4.3.6**: transporte de eventos apos o commit.
+- **Transactional Outbox**: uma outbox própria para cada tabela de domínio que produzir eventos.
+- **RabbitMQ 4.3.6**: transporte de eventos após o commit.
 - **Elasticsearch 9.5.4**: read model exclusivo das queries, inclusive consultas por id.
-- **Redis 8.8**: somente sessoes, tokens revogados, rate limiting e dados temporarios; nao participa das queries de usuarios.
+- **Redis 8.8**: somente sessões, tokens revogados, rate limiting e dados temporários; não participa das queries de usuários.
 - **.NET 10 LTS**: runtime e SDK padrao da aplicacao.
-- **Docker**: ambiente padrao para restore, build, testes e execucao.
+- **Docker**: ambiente padrão para restore, build, testes e execução.
 
-O fluxo de desenvolvimento e:
+O fluxo de desenvolvimento é:
 
 ```text
 spec -> plan -> tasks -> implementation -> tests -> update docs
@@ -25,7 +25,7 @@ spec -> plan -> tasks -> implementation -> tests -> update docs
 
 ## Executar Com Docker
 
-A stack completa do backend deve subir via Docker Compose, incluindo os servicos de banco, fila, busca, cache, configuracoes de bootstrap e os scripts de inicializacao necessarios para que o ambiente local fique funcional desde o primeiro `up`.
+A stack completa do backend deve subir via Docker Compose, incluindo os serviços de banco, fila, busca, cache, configurações de bootstrap e os scripts de inicialização necessários para que o ambiente local fique funcional desde o primeiro `up`.
 
 Subir toda a stack de desenvolvimento:
 

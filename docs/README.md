@@ -1,19 +1,19 @@
-# Documentacao SDD
+# Documentação SDD
 
 Esta pasta usa Specification-Driven Development (SDD).
 
-- `constitution.md`: principios e criterios obrigatorios.
-- `architecture.md`: estrutura tecnica e regras de CQRS e Transactional Outbox.
-- `infrastructure/`: especificacoes operacionais de banco, fila, cache e observabilidade.
-- `infrastructure/search.md`: especificacao do Elasticsearch como read model.
-- `decisions/`: ADRs com escolhas tecnicas e suas consequencias.
+- `constitution.md`: princípios e critérios obrigatórios.
+- `architecture.md`: estrutura técnica e regras de CQRS e Transactional Outbox.
+- `infrastructure/`: especificações operacionais de banco, fila, cache e observabilidade.
+- `infrastructure/search.md`: especificação do Elasticsearch como read model.
+- `decisions/`: ADRs com escolhas técnicas e suas consequências.
 - `specs/`: comportamento esperado de cada funcionalidade.
-- `plans/`: estrategia para implementar uma funcionalidade ou evolucao.
-- `tasks/`: checklist executavel derivado do plano.
+- `plans/`: estratégia para implementar uma funcionalidade ou evolução.
+- `tasks/`: checklist executável derivado do plano.
 
 ## Estrutura .NET
 
-A solucao usa .NET 10 LTS, C# e ASP.NET Core Minimal APIs:
+A solução usa .NET 10 LTS, C# e ASP.NET Core Minimal APIs:
 
 ```text
 Backend.sln
@@ -28,11 +28,11 @@ tests/Backend.Infrastructure.IntegrationTests
 tests/Backend.Api.IntegrationTests
 ```
 
-`Backend.Api/Program.cs` e o composition root. As dependencias sao registradas por extensoes de `IServiceCollection`, e os endpoints sao organizados por feature em arquivos PascalCase. A API usa `ProblemDetails`, Minimal APIs, `CancellationToken` e `WebApplicationFactory` nos testes HTTP.
+`Backend.Api/Program.cs` é o composition root. As dependências são registradas por extensões de `IServiceCollection`, e os endpoints são organizados por feature em arquivos PascalCase. A API usa `ProblemDetails`, Minimal APIs, `CancellationToken` e `WebApplicationFactory` nos testes HTTP.
 
-## Organizacao Dos Testes .NET
+## Organização Dos Testes .NET
 
-Este projeto centraliza os testes em projetos `*.Tests`, segmentados por responsabilidade. Nao deve existir uma classe unica concentrando toda a suite.
+Este projeto centraliza os testes em projetos `*.Tests`, segmentados por responsabilidade. Não deve existir uma classe única concentrando toda a suíte.
 
 Estrutura minima esperada:
 
@@ -48,7 +48,7 @@ tests/
     Fixtures/CustomWebApplicationFactory.cs
 ```
 
-Testes unitarios ficam no projeto `Backend.Api.UnitTests` e testes de integracao no projeto `Backend.Api.IntegrationTests`, usando xUnit e `WebApplicationFactory` quando aplicavel. O padrao operacional e manter a suite segmentada por camada, evitando classes de teste monoliticas e testes acoplados a detalhes privados.
+Testes unitários ficam no projeto `Backend.Api.UnitTests` e testes de integração no projeto `Backend.Api.IntegrationTests`, usando xUnit e `WebApplicationFactory` quando aplicável. O padrão operacional é manter a suíte segmentada por camada, evitando classes de teste monolíticas e testes acoplados a detalhes privados.
 
 Fluxo recomendado:
 
