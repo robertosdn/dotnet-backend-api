@@ -1,0 +1,8 @@
+root = true
+
+[*.cs]
+# IDE0005: Remove unnecessary using directives.
+dotnet_diagnostic.IDE0005.severity = error
+
+# CS8019: Unnecessary using directive.
+dotnet_diagnostic.CS8019.severity = error
