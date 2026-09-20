@@ -55,7 +55,7 @@
 
 ## Completion Gate
 
-No endpoint task can be marked as complete while the planned modular structure does not exist, while `Program.cs` concentrates domain, application, or infrastructure responsibilities, or while runtime uses `InMemoryAccessUserRepository`. Review must check file paths, contracts between layers, connection with MySQL/RabbitMQ, and corresponding tests.
+No endpoint task can be marked as complete while the planned modular structure does not exist, while `Program.cs` concentrates domain, application, or infrastructure responsibilities, or while runtime uses `InMemory...Repository`. Review must check file paths, contracts between layers, connection with MySQL/RabbitMQ, and corresponding tests.
 
 An implementation can only be marked as complete when it uses the final environment infrastructure: MySQL/InnoDB for the write model, outbox in the same transaction, and RabbitMQ for post-commit publication. In-memory doubles are allowed only in isolated unit tests and cannot be registered as endpoint implementation.
 

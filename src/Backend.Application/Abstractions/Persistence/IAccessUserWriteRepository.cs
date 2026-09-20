@@ -26,4 +26,6 @@ public interface IAccessUserWriteRepository
         CancellationToken cancellationToken);
 
     Task<AccessUser?> FindByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    Task<AccessUser?> FindByEmailAsync(string email, CancellationToken cancellationToken);
 }

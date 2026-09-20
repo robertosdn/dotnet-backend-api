@@ -93,6 +93,11 @@ public sealed class CreateAccessUserHandlerTests
         {
             return Task.FromResult<AccessUser?>(null);
         }
+
+        public Task<AccessUser?> FindByEmailAsync(string email, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<AccessUser?>(null);
+        }
     }
 
     private sealed class FakePasswordHasher : IPasswordHasher
@@ -103,6 +108,11 @@ public sealed class CreateAccessUserHandlerTests
         {
             WasCalled = true;
             return Task.FromResult("$argon2id$test");
+        }
+
+        public Task<bool> VerifyAsync(string password, string passwordHash, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(false);
         }
     }
 }

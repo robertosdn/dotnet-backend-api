@@ -59,12 +59,18 @@ public sealed class CreateAccessUserEndpointTests : IClassFixture<ApiFactory>
 
         public Task<AccessUser?> FindByIdAsync(Guid id, CancellationToken cancellationToken) =>
             Task.FromResult<AccessUser?>(null);
+
+        public Task<AccessUser?> FindByEmailAsync(string email, CancellationToken cancellationToken) =>
+            Task.FromResult<AccessUser?>(null);
     }
 
     internal sealed class FakePasswordHasher : IPasswordHasher
     {
         public Task<string> HashAsync(string password, CancellationToken cancellationToken) =>
             Task.FromResult("$argon2id$integration-test");
+
+        public Task<bool> VerifyAsync(string password, string passwordHash, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
     }
 }
 

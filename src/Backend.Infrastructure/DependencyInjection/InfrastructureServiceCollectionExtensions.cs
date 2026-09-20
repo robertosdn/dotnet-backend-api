@@ -22,6 +22,9 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IAccessUserWriteRepository, MySqlAccessUserWriteRepository>();
         services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
 
+        services.Configure<JwtTokenService.JwtOptions>(options => configuration.GetSection(JwtTokenService.JwtOptions.SectionName).Bind(options));
+        services.AddScoped<ITokenService, JwtTokenService>();
+
         var elasticsearchOptions = new ElasticsearchOptions();
         configuration.GetSection(ElasticsearchOptions.SectionName).Bind(elasticsearchOptions);
         services.AddSingleton(elasticsearchOptions);

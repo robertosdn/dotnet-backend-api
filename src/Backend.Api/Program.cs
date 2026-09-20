@@ -1,4 +1,5 @@
 using Backend.Api.Endpoints.AccessUsers;
+using Backend.Api.Endpoints.Auth;
 using Backend.Application.DependencyInjection;
 using Backend.Infrastructure.DependencyInjection;
 
@@ -16,6 +17,7 @@ app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.MapHealthChecks("/health");
 app.MapAccessUserEndpoints();
+app.MapAuthEndpoints();
 
 app.Run();
 

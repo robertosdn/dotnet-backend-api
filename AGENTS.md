@@ -11,22 +11,26 @@
 ## Essential Commands
 
 ### Run Full Stack (dev)
+
 ```bash
 docker compose up --build
 ```
 
 ### Run API Only (requires infra running)
+
 ```bash
 docker compose up --build rest-server
 ```
 
 ### Run Tests in Docker
+
 ```bash
 docker compose --profile test build rest-test
 docker compose --profile test run --rm rest-test
 ```
 
 ### Local Dev (outside Docker)
+
 ```bash
 # Trust cert once
 dotnet dev-certs https --clean && dotnet dev-certs https --trust
@@ -36,6 +40,7 @@ dotnet run --project src/Backend.Api/Backend.Api.csproj
 ```
 
 ### Format / Build / Test Locally
+
 ```bash
 dotnet format --verify-no-changes
 dotnet build --warnaserror
@@ -58,7 +63,7 @@ dotnet test
 
 ## Project Structure
 
-```
+```text
 Backend.sln
 src/
   Backend.Api/              # Minimal APIs, endpoint groups, middleware
@@ -75,11 +80,22 @@ tests/
 
 ## SDD Workflow (Required)
 
-```
+```text
 spec (docs/specs/) → plan (docs/plans/) → tasks (docs/tasks/) → implement → test → update docs
 ```
 
 When changing: infra, deps, Dockerfile, docker-compose.yml, env vars, build/test/run commands → update all affected `.md` files (README, docs/, plans, tasks, ADRs).
+
+### Task Completion Tracking
+
+Tasks in `docs/tasks/` use checkbox format. Mark completed tasks with `[x]`:
+
+```markdown
+- [x] Implement `GET /api/v1/access-users/{id}`.
+- [ ] Implement `GET /api/v1/access-users` with pagination.
+```
+
+This provides clear visual progress tracking and ensures documentation stays synchronized with implementation.
 
 ---
 
@@ -107,7 +123,7 @@ When changing: infra, deps, Dockerfile, docker-compose.yml, env vars, build/test
 ## Environment Variables (Docker)
 
 | Service | Key Variables |
-|---------|---------------|
+| --------- | --------------- |
 | MySQL | `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD` |
 | RabbitMQ | `RABBITMQ_DEFAULT_USER`, `RABBITMQ_DEFAULT_PASS` |
 | API | `ASPNETCORE_URLS`, `ASPNETCORE_Kestrel__Certificates__Default__Path`, `ASPNETCORE_Kestrel__Certificates__Default__Password` |

@@ -97,6 +97,35 @@ public sealed class MySqlAccessUserWriteRepository(MySqlDataSource dataSource) :
         return new AccessUser(userId, email, name, passwordHash, status, version, createdAt, updatedAt);
     }
 
+    public async Task<AccessUser?> FindByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id, email, name, password_hash, status, version, created_at, updated_at
+            FROM access_users
+            WHERE email = @email
+            """;
+        command.Parameters.AddWithValue("@email", email);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        var userId = new Guid(reader.GetFieldValue<byte[]>(0));
+        var emailVo = new AccessUserEmail(reader.GetString(1));
+        var name = new AccessUserName(reader.GetString(2));
+        var passwordHash = reader.GetString(3);
+        var status = Enum.Parse<AccessUserStatus>(reader.GetString(4), true);
+        var version = reader.GetInt64(5);
+        var createdAt = reader.GetDateTime(6);
+        var updatedAt = reader.GetDateTime(7);
+
+        return new AccessUser(userId, emailVo, name, passwordHash, status, version, createdAt, updatedAt);
+    }
+
     private static async Task InsertUserAsync(
         MySqlConnection connection,
         MySqlTransaction transaction,
